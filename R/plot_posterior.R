@@ -27,7 +27,7 @@ plot_posterior <- function(object, cred_level = 0.89, hdi = TRUE, ...) {
     df <- data.frame(x = draws)
     g <- ggplot2::ggplot(df, ggplot2::aes(x = .data$x)) +
       ggplot2::geom_density() +
-      ggplot2::labs(x = "Value", y = "Density", title = "Posterior distribution", subtitle = paste0("Median and ", cred_level * 100, "% credible interval")) +
+      ggplot2::labs(x = "Value", y = "Density", title = "Posterior distribution", subtitle = paste0("Median and ", cred_level * 100, "% credible interval"))
 
     g <- g +
       ggplot2::geom_vline(xintercept = summary$median, linetype = "dashed") +
