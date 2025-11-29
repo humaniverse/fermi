@@ -2,20 +2,34 @@
 % Please edit documentation in R/expert_gamma_prior.R
 \name{expert_gamma_prior}
 \alias{expert_gamma_prior}
-\title{Gamma prior from expert quantiles}
+\title{Gamma prior from expert quantiles (hybrid)}
 \usage{
-expert_gamma_prior(q, p = c(0.1, 0.9), start = c(0, 0))
+expert_gamma_prior(
+  q,
+  p = c(0.1, 0.9),
+  shape_switch = 20,
+  mode = c("auto", "normal", "uniroot")
+)
 }
 \arguments{
-\item{q}{Numeric vector of length 2: target quantiles (> 0).}
+\item{q}{Numeric, length 2: target quantiles (> 0), e.g. c(q10, q90).}
 
-\item{p}{Numeric vector of length 2: cumulative probabilities for q.}
+\item{p}{Numeric, length 2: corresponding probabilities in (0, 1).}
 
-\item{start}{Optional starting values for log(shape), log(rate).}
+\item{shape_switch}{Threshold on the implied shape above which we trust
+the normal approximation (default 20).}
+
+\item{mode}{One of "auto", "normal", "uniroot":
+\itemize{
+\item "auto": hybrid behaviour (recommended)
+\item "normal": always use normal approximation
+\item "uniroot": always use the uniroot solver
+}}
 }
 \value{
 A bf_prior object with dist = "gamma".
 }
 \description{
-Gamma prior from expert quantiles
+Uses a normal approximation for "large, bell-shaped" Gammas and a
+uniroot-based solver for more skewed or small-scale cases.
 }

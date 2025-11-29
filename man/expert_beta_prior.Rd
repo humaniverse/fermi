@@ -2,20 +2,34 @@
 % Please edit documentation in R/expert_beta_prior.R
 \name{expert_beta_prior}
 \alias{expert_beta_prior}
-\title{Beta prior from expert quantiles}
+\title{Beta prior from expert quantiles (robust version)}
 \usage{
-expert_beta_prior(q, p = c(0.1, 0.9), start = c(0, 0))
+expert_beta_prior(
+  q,
+  p = c(0.1, 0.9),
+  start = NULL,
+  method = "BFGS",
+  maxit = 2000,
+  tol = 1e-10
+)
 }
 \arguments{
-\item{q}{Numeric vector of length 2: target quantiles.}
+\item{q}{Numeric vector of length 2: target quantiles in (0, 1).}
 
-\item{p}{Numeric vector of length 2: cumulative probabilities for q (e.g. c(0.1, 0.9)).}
+\item{p}{Numeric vector of length 2: cumulative probabilities for q.}
 
 \item{start}{Optional starting values for log(shape1), log(shape2).}
+
+\item{method}{Optimisation method passed to optim().}
+
+\item{maxit}{Maximum iterations for optim().}
+
+\item{tol}{Tolerance on squared error between target and achieved quantiles
+below which we don't complain even if optim() reports non-convergence.}
 }
 \value{
 A bf_prior object with dist = "beta".
 }
 \description{
-Beta prior from expert quantiles
+Beta prior from expert quantiles (robust version)
 }
