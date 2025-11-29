@@ -5,6 +5,8 @@
 #' @param hdi Logical: annotate HDI?
 #' @param ... Passed to underlying plotting function.
 #'
+#' @importFrom graphics abline plot segments
+#' @importFrom rlang .data
 #' @export
 plot_posterior <- function(object, cred_level = 0.89, hdi = TRUE, ...) {
   draws <- if (inherits(object, "bf_posterior") ||
