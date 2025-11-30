@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# bayesfermi
+# bayesfermi <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -53,13 +53,13 @@ library(bayesfermi)
 # ---- Priors ----
 # Population of England, which we'll judge to be between 54 and 56 million with 80% credibility
 england_pop_prior <- expert_gamma_prior(
-  q = c(5.4e7, 5.6e7), 
+  q = c(5.4e7, 5.6e7),
   p = c(0.1, 0.9)
 )
 
 # Average number of people in a household, judged to be between 2 and 3.2 with 80% credibility
 hh_size_prior <- expert_normal_prior(
-  mean  = 2.4,
+  mean = 2.4,
   lower = 2.0,
   upper = 3.2,
   level = 0.8
@@ -67,7 +67,7 @@ hh_size_prior <- expert_normal_prior(
 
 # Risk of dwelling fires, judged to be between 0.01% and 0.06%, with 80% credibility
 fire_rate_prior <- expert_beta_prior(
-  q = c(0.001, 0.006), 
+  q = c(0.001, 0.006),
   p = c(0.1, 0.9)
 )
 
