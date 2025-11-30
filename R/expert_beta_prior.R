@@ -10,23 +10,29 @@
 #'
 #' @return A bf_prior object with dist = "beta".
 #' @export
-expert_beta_prior <- function(q,
-                              p = c(0.1, 0.9),
-                              start = NULL,
-                              method = "BFGS",
-                              maxit = 2000,
-                              tol = 1e-10) {
+expert_beta_prior <- function(
+  q,
+  p = c(0.1, 0.9),
+  start = NULL,
+  method = "BFGS",
+  maxit = 2000,
+  tol = 1e-10
+) {
   if (length(q) != 2L || length(p) != 2L) {
     stop("q and p must both be length 2.")
   }
-  if (any(q <= 0 | q >= 1)) stop("Beta quantiles must lie in (0, 1).")
-  if (any(p <= 0 | p >= 1)) stop("Probabilities p must lie in (0, 1).")
+  if (any(q <= 0 | q >= 1)) {
+    stop("Beta quantiles must lie in (0, 1).")
+  }
+  if (any(p <= 0 | p >= 1)) {
+    stop("Probabilities p must lie in (0, 1).")
+  }
 
   # If no start given and p is symmetric around 0.5, use a MoM-based guess
   if (is.null(start)) {
     if (abs(p[1] + p[2] - 1) < 1e-8) {
       m <- mean(q)
-      z <- stats::qnorm(p[2])                  # e.g. qnorm(0.9)
+      z <- stats::qnorm(p[2]) # e.g. qnorm(0.9)
       sd_approx <- (q[2] - q[1]) / (2 * z)
       v <- sd_approx^2
       common <- m * (1 - m) / v - 1
@@ -60,7 +66,7 @@ expert_beta_prior <- function(q,
   )
 
   alpha <- exp(fit$par[1])
-  beta  <- exp(fit$par[2])
+  beta <- exp(fit$par[2])
 
   # Check how well we actually match the target quantiles
   achieved <- stats::qbeta(p, alpha, beta)
@@ -69,7 +75,8 @@ expert_beta_prior <- function(q,
   if (fit$convergence != 0 && err > tol) {
     warning(
       "Optimization for expert Beta prior did not fully converge. ",
-      "Final squared error on target quantiles: ", signif(err, 3)
+      "Final squared error on target quantiles: ",
+      signif(err, 3)
     )
   }
 

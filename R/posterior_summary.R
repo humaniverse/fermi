@@ -7,10 +7,14 @@
 #' @return A list with median, ci, and (optionally) hdi.
 #' @export
 posterior_summary <- function(object, cred_level = 0.89, hdi = TRUE) {
-  if (cred_level <= 0 || cred_level >= 1) stop("cred_level must be in (0, 1).")
-  
-  draws <- if (inherits(object, "bf_posterior") ||
-              inherits(object, "bf_prior")) {
+  if (cred_level <= 0 || cred_level >= 1) {
+    stop("cred_level must be in (0, 1).")
+  }
+
+  draws <- if (
+    inherits(object, "bf_posterior") ||
+      inherits(object, "bf_prior")
+  ) {
     bf_draws(object)
   } else if (inherits(object, "bf_fermi")) {
     object$draws
@@ -21,7 +25,9 @@ posterior_summary <- function(object, cred_level = 0.89, hdi = TRUE) {
   }
 
   draws <- draws[is.finite(draws)]
-  if (length(draws) < 2L) stop("Not enough draws for summary.")
+  if (length(draws) < 2L) {
+    stop("Not enough draws for summary.")
+  }
 
   med <- stats::median(draws)
   alpha <- (1 - cred_level) / 2
@@ -46,9 +52,23 @@ print.bf_summary <- function(x, ...) {
   cat("Posterior summary\n")
   cat("  Credible level:", x$cred_level * 100, "%\n")
   cat("  Median        :", x$median, "\n")
-  cat("  CI            : [", x$ci["lower"], ", ", x$ci["upper"], "]\n", sep = "")
+  cat(
+    "  CI            : [",
+    x$ci["lower"],
+    ", ",
+    x$ci["upper"],
+    "]\n",
+    sep = ""
+  )
   if (!is.null(x$hdi)) {
-    cat("  HDI           : [", x$hdi["lower"], ", ", x$hdi["upper"], "]\n", sep = "")
+    cat(
+      "  HDI           : [",
+      x$hdi["lower"],
+      ", ",
+      x$hdi["upper"],
+      "]\n",
+      sep = ""
+    )
   }
   invisible(x)
 }

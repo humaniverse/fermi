@@ -14,45 +14,55 @@
 #'
 #' @return A bf_prior object with dist = "gamma".
 #' @export
-expert_gamma_prior <- function(q,
-                               p = c(0.1, 0.9),
-                               shape_switch = 20,
-                               mode = c("auto", "normal", "uniroot")) {
+expert_gamma_prior <- function(
+  q,
+  p = c(0.1, 0.9),
+  shape_switch = 20,
+  mode = c("auto", "normal", "uniroot")
+) {
   mode <- match.arg(mode)
 
   if (length(q) != 2L || length(p) != 2L) {
     stop("q and p must both be length 2.")
   }
-  if (any(q <= 0)) stop("Gamma quantiles must be > 0.")
-  if (any(p <= 0 | p >= 1)) stop("Probabilities p must lie in (0, 1).")
-  if (!(q[2] > q[1])) stop("Require q[2] > q[1].")
-  if (!(p[2] > p[1])) stop("Require p[2] > p[1].")
+  if (any(q <= 0)) {
+    stop("Gamma quantiles must be > 0.")
+  }
+  if (any(p <= 0 | p >= 1)) {
+    stop("Probabilities p must lie in (0, 1).")
+  }
+  if (!(q[2] > q[1])) {
+    stop("Require q[2] > q[1].")
+  }
+  if (!(p[2] > p[1])) {
+    stop("Require p[2] > p[1].")
+  }
 
   # 1. Normal-approximation guess for shape/rate
   guess <- .gamma_from_quantiles_normal(q, p)
   shape0 <- guess$shape
-  rate0  <- guess$rate
+  rate0 <- guess$rate
 
   # 2. Decide which method to use
-  use_normal  <- (mode == "normal") ||
-                 (mode == "auto" && shape0 >= shape_switch)
+  use_normal <- (mode == "normal") ||
+    (mode == "auto" && shape0 >= shape_switch)
   use_uniroot <- (mode == "uniroot") ||
-                 (mode == "auto" && shape0 < shape_switch)
+    (mode == "auto" && shape0 < shape_switch)
 
   if (use_normal && !use_uniroot) {
     shape <- shape0
-    rate  <- rate0
+    rate <- rate0
     method_used <- "normal"
   } else if (use_uniroot && !use_normal) {
     sol <- .gamma_from_quantiles_uniroot(q, p, shape_init = shape0)
     shape <- sol$shape
-    rate  <- sol$rate
+    rate <- sol$rate
     method_used <- "uniroot"
   } else {
     # should not happen, but just in case:
     sol <- .gamma_from_quantiles_uniroot(q, p, shape_init = shape0)
     shape <- sol$shape
-    rate  <- sol$rate
+    rate <- sol$rate
     method_used <- "uniroot"
   }
 
@@ -63,13 +73,18 @@ expert_gamma_prior <- function(q,
   if (err_q > max(1e-6 * mean(q)^2, 1e-6)) {
     warning(
       "expert_gamma_prior: quantile match may be imprecise. ",
-      "Squared error on q: ", signif(err_q, 3),
-      " (method = ", method_used, ", shape ~= ", signif(shape, 3), ")"
+      "Squared error on q: ",
+      signif(err_q, 3),
+      " (method = ",
+      method_used,
+      ", shape ~= ",
+      signif(shape, 3),
+      ")"
     )
   }
 
   bf_prior(
-    dist   = "gamma",
+    dist = "gamma",
     params = list(shape = shape, rate = rate),
     source = "expert",
     metadata = list(
@@ -77,8 +92,8 @@ expert_gamma_prior <- function(q,
       p = p,
       method = method_used,
       shape0 = shape0,
-      rate0  = rate0,
-      err_q  = err_q
+      rate0 = rate0,
+      err_q = err_q
     )
   )
 }
@@ -97,7 +112,7 @@ expert_gamma_prior <- function(q,
 
   v <- sd_approx^2
   shape <- m^2 / v
-  rate  <- m / v
+  rate <- m / v
 
   list(shape = shape, rate = rate)
 }
@@ -117,21 +132,21 @@ expert_gamma_prior <- function(q,
 
   # bracket the root in log(shape)
   if (is.null(shape_init) || !is.finite(shape_init) || shape_init <= 0) {
-    low  <- -5
-    high <-  5
+    low <- -5
+    high <- 5
   } else {
-    low  <- log(shape_init) - 5
+    low <- log(shape_init) - 5
     high <- log(shape_init) + 5
   }
 
-  f_low  <- f_log_shape(low)
+  f_low <- f_log_shape(low)
   f_high <- f_log_shape(high)
 
   iter <- 0
   while (f_low * f_high > 0 && iter < 10) {
-    low  <- low  - 2
+    low <- low - 2
     high <- high + 2
-    f_low  <- f_log_shape(low)
+    f_low <- f_log_shape(low)
     f_high <- f_log_shape(high)
     iter <- iter + 1
   }
@@ -144,14 +159,14 @@ expert_gamma_prior <- function(q,
     f_log_shape,
     lower = low,
     upper = high,
-    tol   = 1e-10
+    tol = 1e-10
   )
 
   shape <- exp(root$root)
 
   # Now fix rate so that Q(p[1]; shape, rate) = q[1]
   q1_ref <- stats::qgamma(p[1], shape = shape, rate = 1)
-  rate   <- q1_ref / q[1]
+  rate <- q1_ref / q[1]
 
   list(shape = shape, rate = rate)
 }

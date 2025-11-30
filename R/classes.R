@@ -7,7 +7,12 @@
 #'
 #' @return An object of class "bf_prior".
 #' @export
-bf_prior <- function(dist, params, source = c("data", "expert"), metadata = list()) {
+bf_prior <- function(
+  dist,
+  params,
+  source = c("data", "expert"),
+  metadata = list()
+) {
   source <- match.arg(source)
   dist <- match.arg(dist, c("beta", "gamma", "normal"))
   stopifnot(is.list(params))

@@ -8,12 +8,18 @@
 hdi <- function(x, cred_level = 0.89) {
   x <- x[is.finite(x)]
   n <- length(x)
-  if (n < 2L) stop("Need at least two samples for HDI.")
-  if (cred_level <= 0 || cred_level >= 1) stop("cred_level must be in (0, 1).")
+  if (n < 2L) {
+    stop("Need at least two samples for HDI.")
+  }
+  if (cred_level <= 0 || cred_level >= 1) {
+    stop("cred_level must be in (0, 1).")
+  }
 
   x_sorted <- sort(x)
   m <- floor(cred_level * n)
-  if (m < 1L) stop("cred_level too small for the sample size.")
+  if (m < 1L) {
+    stop("cred_level too small for the sample size.")
+  }
 
   n_intervals <- n - m
   low_idx <- seq_len(n_intervals)
