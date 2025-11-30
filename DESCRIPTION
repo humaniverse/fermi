@@ -12,3 +12,7 @@ Imports:
     ggplot2,
     graphics,
     rlang
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
