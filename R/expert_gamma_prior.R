@@ -13,6 +13,14 @@
 #'   - "uniroot": always use the uniroot solver
 #'
 #' @return A bf_prior object with dist = "gamma".
+#'
+#' @examples
+#' # Reliability: time-to-failure in hours with 10% at 400 and 90% at 900
+#' expert_gamma_prior(q = c(400, 900), p = c(0.1, 0.9))
+#'
+#' # Low-rate process: 10% at 0.2 events/day, 90% at 1 event/day
+#' expert_gamma_prior(q = c(0.2, 1), p = c(0.1, 0.9))
+#'
 #' @export
 expert_gamma_prior <- function(
   q,

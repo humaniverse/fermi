@@ -17,3 +17,13 @@ A bf_prior object with dist = "beta".
 \description{
 Fit a Beta prior to data
 }
+\examples{
+# Method of moments: proportions from small pilots
+click_rates <- c(0.04, 0.05, 0.06, 0.07, 0.05, 0.08)
+fit_beta_prior(click_rates, method = "mm")
+
+# MLE: conversion rates expressed as successes / trials
+conv <- c(5/120, 8/150, 10/170, 12/160, 7/140)
+fit_beta_prior(conv, method = "mle")
+
+}

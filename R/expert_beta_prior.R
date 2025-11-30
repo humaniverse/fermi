@@ -9,6 +9,14 @@
 #'   below which we don't complain even if optim() reports non-convergence.
 #'
 #' @return A bf_prior object with dist = "beta".
+#'
+#' @examples
+#' # 10% and 90% quantiles at 2% and 8%: e.g., piano ownership fraction
+#' expert_beta_prior(q = c(0.02, 0.08), p = c(0.1, 0.9))
+#'
+#' # Asymmetric beliefs: 25% chance below 3%, 75% chance below 10%
+#' expert_beta_prior(q = c(0.03, 0.10), p = c(0.25, 0.75))
+#'
 #' @export
 expert_beta_prior <- function(
   q,

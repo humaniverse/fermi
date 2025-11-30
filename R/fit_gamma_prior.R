@@ -4,6 +4,16 @@
 #' @param method "mm" or "mle".
 #'
 #' @return A bf_prior object with dist = "gamma".
+#'
+#' @examples
+#' # Method of moments: task durations in hours
+#' handling_time <- c(0.8, 1.1, 0.9, 1.3, 1.0, 1.2)
+#' fit_gamma_prior(handling_time, method = "mm")
+#'
+#' # MLE: daily throughput figures (jobs completed)
+#' throughput <- c(95, 110, 102, 130, 120, 115)
+#' fit_gamma_prior(throughput, method = "mle")
+#'
 #' @export
 fit_gamma_prior <- function(y, method = c("mm", "mle")) {
   method <- match.arg(method)
