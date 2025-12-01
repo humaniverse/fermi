@@ -1,0 +1,133 @@
+# fermi
+
+This R package helps you make probabilistic estimates using the [Fermi
+method](https://en.wikipedia.org/wiki/Fermi_problem). It allows you to
+break down complex problems into smaller, manageable variables and
+calculate the probability distribution of the outcome using Monte Carlo
+simulations.
+
+Whether you’re estimating market size, the potential impacts of a policy
+change, or the number of piano tuners in Chicago, this tool provides a
+rigorous yet accessible way to handle uncertainty.
+
+## Installation
+
+You can install the development version of fermi from
+[GitHub](https://github.com/) with:
+
+``` r
+# install.packages("pak")
+pak::pak("humaniverse/fermi")
+```
+
+## Example
+
+Let’s say you want to estimate the annual number of dwelling fires in
+England. You can decompose this problem as follows:
+
+$$\text{number of dwelling fires} = \text{number of dwellings} \times \text{rate of dwelling fires}$$
+
+where `number of dwellings` can be further decomposed into:
+
+$$\text{number of dwellings} = \text{population} \times \text{average household size}$$
+
+You would then express your beliefs about each component using
+probability distributions (priors), and use the `fermi` package to
+simulate the overall distribution of dwelling fires:
+
+``` r
+library(fermi)
+
+# ---- Priors ----
+# Population of England, which we'll judge to be between 54 and 56 million with 80% credibility
+england_pop_prior <- expert_gamma_prior(
+  q = c(5.4e7, 5.6e7),
+  p = c(0.1, 0.9)
+)
+
+# Average number of people in a household, judged to be between 2 and 3.2 with 80% credibility
+hh_size_prior <- expert_normal_prior(
+  mean = 2.4,
+  lower = 2.0,
+  upper = 3.2,
+  level = 0.8
+)
+
+# Risk of dwelling fires, judged to be between 0.01% and 0.06%, with 80% credibility
+fire_rate_prior <- expert_beta_prior(
+  q = c(0.001, 0.006),
+  p = c(0.1, 0.9)
+)
+
+# ---- Fermi simulation ----
+fermi_res <- bf_fermi_simulate(
+  components = list(
+    pop = england_pop_prior,
+    hh_size = hh_size_prior,
+    p_fire = fire_rate_prior
+  ),
+  # This is where we define how the components combine to give the final estimate
+  fun = function(pop, hh_size, p_fire) {
+    (pop / hh_size) * p_fire
+  },
+  n_draws = 20000
+)
+
+# Summarise and plot
+posterior_summary(fermi_res, cred_level = 0.89)
+#> Posterior summary
+#>   Credible level: 89 %
+#>   Median        : 65294.03 
+#>   CI            : [16335.58, 175730.8]
+#>   HDI           : [5916.407, 145177.3]
+
+plot_posterior(fermi_res, cred_level = 0.89)
+```
+
+![](reference/figures/README-example-1.png)
+
+# Package index
+
+## All functions
+
+- [`beta_binom_posterior()`](https://humaniverse.github.io/fermi/reference/beta_binom_posterior.md)
+  : Conjugate Beta-Binomial update
+- [`bf_draws()`](https://humaniverse.github.io/fermi/reference/bf_draws.md)
+  : Draw samples from a prior or posterior distribution
+- [`bf_fermi_simulate()`](https://humaniverse.github.io/fermi/reference/bf_fermi_simulate.md)
+  : Fermi-style simulation from a combination of priors/posteriors
+- [`bf_posterior()`](https://humaniverse.github.io/fermi/reference/bf_posterior.md)
+  : Create a fermi posterior object
+- [`bf_prior()`](https://humaniverse.github.io/fermi/reference/bf_prior.md)
+  : Create a fermi prior object
+- [`expert_beta_prior()`](https://humaniverse.github.io/fermi/reference/expert_beta_prior.md)
+  : Beta prior from expert quantiles (robust version)
+- [`expert_gamma_prior()`](https://humaniverse.github.io/fermi/reference/expert_gamma_prior.md)
+  : Gamma prior from expert quantiles (hybrid)
+- [`expert_normal_prior()`](https://humaniverse.github.io/fermi/reference/expert_normal_prior.md)
+  : Normal prior from expert mean and interval
+- [`fit_beta_prior()`](https://humaniverse.github.io/fermi/reference/fit_beta_prior.md)
+  : Fit a Beta prior to data
+- [`fit_gamma_prior()`](https://humaniverse.github.io/fermi/reference/fit_gamma_prior.md)
+  : Fit a Gamma prior to positive data
+- [`fit_normal_prior()`](https://humaniverse.github.io/fermi/reference/fit_normal_prior.md)
+  : Fit a Normal prior to real-valued data
+- [`gamma_poisson_posterior()`](https://humaniverse.github.io/fermi/reference/gamma_poisson_posterior.md)
+  : Conjugate Gamma-Poisson update for a rate
+- [`hdi()`](https://humaniverse.github.io/fermi/reference/hdi.md) :
+  Highest Density Interval (approximate) from samples
+- [`normal_normal_posterior()`](https://humaniverse.github.io/fermi/reference/normal_normal_posterior.md)
+  : Conjugate Normal-Normal update (known observation sd)
+- [`plot_posterior()`](https://humaniverse.github.io/fermi/reference/plot_posterior.md)
+  : Plot posterior or Fermi distribution
+- [`posterior_summary()`](https://humaniverse.github.io/fermi/reference/posterior_summary.md)
+  : Summarise a posterior or Fermi distribution
+
+# Articles
+
+### All vignettes
+
+- [Bayesian Fermi Estimation with \`fermi\`: The Chicago Piano Tuners
+  Example](https://humaniverse.github.io/fermi/articles/chicago-piano-tuners.md):
+- [Conjugate updates with \`fermi\`: Beta–Binomial, Gamma–Poisson, and
+  Normal–Normal](https://humaniverse.github.io/fermi/articles/conjugate-updates.md):
