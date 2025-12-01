@@ -28,7 +28,7 @@ You can install the development version of fermi from [GitHub](https://github.co
 
 ``` r
 # install.packages("pak")
-pak::pak("matthewgthomas/fermi")
+pak::pak("humaniverse/fermi")
 ```
 
 ## Example

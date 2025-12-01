@@ -2,7 +2,7 @@
 title: "Conjugate updates with `fermi`: Beta–Binomial, Gamma–Poisson, and Normal–Normal"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Conjugate updates with fermi}
+  %\VignetteIndexEntry{Conjugate updates with `fermi`: Beta–Binomial, Gamma–Poisson, and Normal–Normal}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
@@ -23,15 +23,18 @@ library(fermi)
 
 ## Introduction
 The `fermi` package is built around two ideas:
+
 1. **Fermi decompositions** of hard problems into simpler parts.
 2. **Bayesian updating** of beliefs as data arrive.
 
 This vignette focuses on the second part: conjugate updates using:
+
 - beta_binom_posterior() – updating beliefs about a probability.
 - gamma_poisson_posterior() – updating beliefs about a rate of counts.
 - normal_normal_posterior() – updating beliefs about a mean with known noise.
 
 Each section below explains:
+
 - When to use the updating functions and why.
 - How to express your prior with fermi and update it with data.
 
@@ -40,6 +43,7 @@ Each example picks a realistic question, encodes a prior based on rough beliefs,
 ## 1. beta_binom_posterior(): learning a proportion
 ### 1.1 When and why
 Use the **Beta–Binomial** model when:
+
 - The unknown quantity is a **probability** (e.g. proportion of users who click a button).
 - Your data are **counts of successes** out of a **number of trials**.
 - Trials can be treated as independent with the same underlying probability.
@@ -93,6 +97,7 @@ stats::qbeta(
 
 #### 1.2.2 Data: observed signups
 Now we run a short campaign and see:
+
 - 200 visitors
 - 23 signups
 
@@ -123,6 +128,7 @@ plot_posterior(signup_post, cred_level = 0.9)
 ```
 
 Interpretation:
+
 - The posterior median is your updated "best guess" for the signup rate.
 - The credible interval quantifies uncertainty after seeing data **and** incorporating the prior.
 - If you observe more data, the posterior will become more concentrated.
@@ -130,10 +136,12 @@ Interpretation:
 ## 2. beta_gamma_posterior(): learning a rate of counts
 ### 2.1 When and why
 Use the **Gamma–Poisson** model when:
+
 - The unknown quantity is a **rate** $\lambda$ of events per unit exposure (per day, per month, per person-year, etc.).
 - Data are **counts** of events, often with an associated exposure (e.g. days observed, people at risk).
 
 Mathematically:
+
 - Prior: $\lambda \sim \mathrm{Gamma}(\alpha, \beta)$
 - Data: $y_i \mid \lambda \sim \mathrm{Poisson}(\lambda \cdot e_i)$, where $e_i$ is the exposure for observation $i$.
 - Posterior: $\lambda \mid y \sim \mathrm{Gamma}(\alpha + \sum y_i,\; \beta + \sum e_i)$
@@ -207,16 +215,19 @@ plot_posterior(tickets_month, cred_level = 0.89)
 ```
 
 Interpretation:
+
 - The Gamma–Poisson update smoothly blends your prior expectation with observed counts.
 - As you accumulate more days of data, the posterior for the rate narrows.
 
 ## 3. `normal_normal_posterior()`: learning a mean with known noise
 ### 3.1 When and why
 Use the Normal–Normal model when:
+
 - You care about an unknown mean $\mu$.
 - Individual observations are Normally distributed around that mean with a known standard deviation $\sigma$.
 
 Mathematically:
+
 - Prior: $\mu \sim \mathrm{Normal}(\mu_0, \tau_0^2)$
 - Data: $y_i \mid \mu \sim \mathrm{Normal}(\mu, \sigma^2)$ with a known $\sigma$.
 - Posterior: $\mu \mid y \sim \mathrm{Normal}(\mu_n, \tau_n^2)$.
@@ -227,6 +238,7 @@ This is natural when measurement noise is well-understood, e.g. measurement devi
 Suppose you’re tracking the average response time (in minutes) to a certain type of request.
 
 From historical systems you think:
+
 - The average response time is around 60 minutes.
 - 90% of your prior belief is between 40 and 80 minutes.
 
@@ -279,6 +291,7 @@ plot_posterior(response_post, cred_level = 0.9)
 ```
 
 Interpretation:
+
 - The posterior mean moves from the prior mean (60 minutes) towards the sample mean.
 - How far it moves depends on:
     - The prior uncertainty (how wide the prior is).
@@ -289,6 +302,7 @@ Interpretation:
 The conjugate update functions in `fermi` are designed to play nicely with how you'd approach Fermi estimation based on prior knowledge and observed data. Conjugate helpers give you fast, transparent updates: write down a defensible prior, add evidence, and immediately see the revised belief. Swap in your own priors and data to fit your domain.
 
 A common workflow looks like this:
+
 - Use `beta_binom_posterior()`, `gamma_poisson_posterior()`, or `normal_normal_posterior()` to update beliefs about individual components (probabilities, rates, or means).
 - Treat the resulting `bf_posterior` objects as components in a Fermi-style decomposition with `bf_fermi_simulate()`.
 - Use `posterior_summary()` and `plot_posterior()` on the combined result to understand uncertainty about a more complex quantity.
@@ -296,11 +310,13 @@ A common workflow looks like this:
 In this way, conjugate updates give you a **data-informed starting point** for Fermi estimations, while the Fermi simulation lets you combine multiple uncertain components into a final quantity of interest.
 
 ## Summary
+
 - `beta_binom_posterior()` for learning a probability (e.g. signup rate) from counts of successes.
 - `gamma_poisson_posterior()` for learning a rate (e.g. tickets per day) from counts over exposures.
 - `normal_normal_posterior()` for learning a mean (e.g. average response time) when noise is approximately Normal with known standard deviation.
 
 Each function takes a `bf_prior` and returns a `bf_posterior`, which can be:
+
 - summarised with `posterior_summary()`,
 - visualised with `plot_posterior()`,
 - or used as inputs to further Fermi-style simulations.

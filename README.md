@@ -24,7 +24,7 @@ You can install the development version of fermi from
 
 ``` r
 # install.packages("pak")
-pak::pak("matthewgthomas/fermi")
+pak::pak("humaniverse/fermi")
 ```
 
 ## Example
@@ -88,9 +88,9 @@ fermi_res <- bf_fermi_simulate(
 posterior_summary(fermi_res, cred_level = 0.89)
 #> Posterior summary
 #>   Credible level: 89 %
-#>   Median        : 64805.06 
-#>   CI            : [17136.3, 172936.4]
-#>   HDI           : [5433.46, 142942.3]
+#>   Median        : 65294.03 
+#>   CI            : [16335.58, 175730.8]
+#>   HDI           : [5916.407, 145177.3]
 
 plot_posterior(fermi_res, cred_level = 0.89)
 ```

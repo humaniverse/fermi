@@ -2,7 +2,7 @@
 title: "Bayesian Fermi Estimation with `fermi`: The Chicago Piano Tuners Example"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Chicago piano tuners with fermi}
+  %\VignetteIndexEntry{Bayesian Fermi Estimation with `fermi`: The Chicago Piano Tuners Example}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
@@ -25,6 +25,7 @@ This vignette demonstrates the classic [Fermi problem](https://en.wikipedia.org/
 > How many piano tuners are in Chicago?
 
 We will:
+
 - Decompose the problem.
 - Construct expert-driven priors.
 - Run a Bayesian Fermi simulation.
@@ -84,7 +85,7 @@ Let's check `expert_gamma_prior()` has captured our beliefs correctly:
 stats::qgamma(
   c(0.1, 0.9),
   shape = population_prior$params$shape,
-  rate  = population_prior$params$rate
+  rate = population_prior$params$rate
 )
 ```
 
@@ -95,7 +96,7 @@ We'll encode this belief as a normal prior using the `expert_normal_prior()` fun
 
 ```{r priors_hh_size}
 hh_size_prior <- expert_normal_prior(
-  mean  = 2.7,
+  mean = 2.7,
   lower = 2.2,
   upper = 3.2,
   level = 0.8
@@ -149,7 +150,7 @@ We'll encode this belief as a normal prior using the `expert_normal_prior()` fun
 
 ```{r priors_work_days}
 work_days_prior <- expert_normal_prior(
-  mean  = 230,
+  mean = 230,
   lower = 180,
   upper = 280,
   level = 0.9
@@ -186,13 +187,17 @@ tuner_draws <- bf_fermi_simulate(
     work_days = work_days_prior,
     tunes_day = tunes_day_prior
   ),
-  fun = function(population,
-                 hh_size,
-                 piano_frac,
-                 tunes_per_piano,
-                 work_days,
-                 tunes_day) {
-    (population / hh_size) * piano_frac * tunes_per_piano /
+  fun = function(
+    population,
+    hh_size,
+    piano_frac,
+    tunes_per_piano,
+    work_days,
+    tunes_day
+  ) {
+    (population / hh_size) *
+      piano_frac *
+      tunes_per_piano /
       (work_days * tunes_day)
   },
   n_draws = 20000
@@ -220,6 +225,7 @@ plot_posterior(tuner_draws, cred_level = 0.9)
 ## Conclusion
 
 This vignette showed how to:
+
 - Decompose a Fermi problem,
 - Construct expert-driven Bayesian priors,
 - Simulate the resulting distribution using `bf_fermi_simulate()`,

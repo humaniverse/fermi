@@ -16,3 +16,4 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+URL: https://humaniverse.github.io/fermi/
