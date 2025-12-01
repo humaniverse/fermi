@@ -2,7 +2,7 @@
 % Please edit documentation in R/classes.R
 \name{bf_prior}
 \alias{bf_prior}
-\title{Create a bayesfermi prior object}
+\title{Create a fermi prior object}
 \usage{
 bf_prior(dist, params, source = c("data", "expert"), metadata = list())
 }
@@ -19,5 +19,5 @@ bf_prior(dist, params, source = c("data", "expert"), metadata = list())
 An object of class "bf_prior".
 }
 \description{
-Create a bayesfermi prior object
+Create a fermi prior object
 }

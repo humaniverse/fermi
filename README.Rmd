@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# bayesfermi <img src="man/figures/logo.png" align="right" height="120" alt="" />
+# fermi <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -24,11 +24,11 @@ Whether you're estimating market size, the potential impacts of a policy change,
 
 ## Installation
 
-You can install the development version of bayesfermi from [GitHub](https://github.com/) with:
+You can install the development version of fermi from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("pak")
-pak::pak("matthewgthomas/bayesfermi")
+pak::pak("matthewgthomas/fermi")
 ```
 
 ## Example
@@ -45,10 +45,10 @@ $$
 \text{number of dwellings} = \text{population} \times \text{average household size}
 $$
 
-You would then express your beliefs about each component using probability distributions (priors), and use the `bayesfermi` package to simulate the overall distribution of dwelling fires:
+You would then express your beliefs about each component using probability distributions (priors), and use the `fermi` package to simulate the overall distribution of dwelling fires:
 
 ```{r example, message=FALSE}
-library(bayesfermi)
+library(fermi)
 
 # ---- Priors ----
 # Population of England, which we'll judge to be between 54 and 56 million with 80% credibility

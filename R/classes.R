@@ -1,4 +1,4 @@
-#' Create a bayesfermi prior object
+#' Create a fermi prior object
 #'
 #' @param dist Character. One of "beta", "gamma", "normal".
 #' @param params Named list of parameters (e.g. list(shape1 = , shape2 = )).
@@ -27,7 +27,7 @@ bf_prior <- function(
   )
 }
 
-#' Create a bayesfermi posterior object
+#' Create a fermi posterior object
 #'
 #' @param dist Character. One of "beta", "gamma", "normal".
 #' @param params Named list of posterior parameters.
@@ -51,7 +51,7 @@ bf_posterior <- function(dist, params, prior = NULL, data = list()) {
 
 #' @export
 print.bf_prior <- function(x, ...) {
-  cat("bayesfermi prior\n")
+  cat("fermi prior\n")
   cat("  Distribution:", x$dist, "\n")
   cat("  Source      :", x$source, "\n")
   cat("  Parameters  :\n")
@@ -61,7 +61,7 @@ print.bf_prior <- function(x, ...) {
 
 #' @export
 print.bf_posterior <- function(x, ...) {
-  cat("bayesfermi posterior\n")
+  cat("fermi posterior\n")
   cat("  Distribution:", x$dist, "\n")
   cat("  Parameters  :\n")
   print(x$params)

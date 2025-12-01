@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# bayesfermi <img src="man/figures/logo.png" align="right" height="120" alt="" />
+# fermi <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
 <!-- badges: start -->
 
@@ -19,12 +19,12 @@ rigorous yet accessible way to handle uncertainty.
 
 ## Installation
 
-You can install the development version of bayesfermi from
+You can install the development version of fermi from
 [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("pak")
-pak::pak("matthewgthomas/bayesfermi")
+pak::pak("matthewgthomas/fermi")
 ```
 
 ## Example
@@ -43,11 +43,11 @@ $$
 $$
 
 You would then express your beliefs about each component using
-probability distributions (priors), and use the `bayesfermi` package to
+probability distributions (priors), and use the `fermi` package to
 simulate the overall distribution of dwelling fires:
 
 ``` r
-library(bayesfermi)
+library(fermi)
 
 # ---- Priors ----
 # Population of England, which we'll judge to be between 54 and 56 million with 80% credibility

@@ -1,8 +1,8 @@
 ---
-title: "Bayesian Fermi Estimation with `bayesfermi`: The Chicago Piano Tuners Example"
+title: "Bayesian Fermi Estimation with `fermi`: The Chicago Piano Tuners Example"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Chicago piano tuners with bayesfermi}
+  %\VignetteIndexEntry{Chicago piano tuners with fermi}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
@@ -19,7 +19,7 @@ set.seed(123)
 
 ## Introduction
 
-The `bayesfermi` package supports Bayesian Fermi estimation: breaking down uncertain quantities into components (decomposition), expressing beliefs as probability distributions (priors), and building uncertainty into the final estimates.
+The `fermi` package supports Bayesian Fermi estimation: breaking down uncertain quantities into components (decomposition), expressing beliefs as probability distributions (priors), and building uncertainty into the final estimates.
 
 This vignette demonstrates the classic [Fermi problem](https://en.wikipedia.org/wiki/Fermi_problem):
 > How many piano tuners are in Chicago?
@@ -31,7 +31,7 @@ We will:
 - Summarise and visualise the resulting distribution.
 
 ```{r setup}
-library(bayesfermi)
+library(fermi)
 ```
 
 ## How many piano tuners are in Chicago?

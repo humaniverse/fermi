@@ -1,8 +1,8 @@
 ---
-title: "Conjugate updates with `bayesfermi`: Beta–Binomial, Gamma–Poisson, and Normal–Normal"
+title: "Conjugate updates with `fermi`: Beta–Binomial, Gamma–Poisson, and Normal–Normal"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Conjugate updates with bayesfermi}
+  %\VignetteIndexEntry{Conjugate updates with fermi}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
@@ -18,11 +18,11 @@ set.seed(42)
 ```
 
 ```{r setup}
-library(bayesfermi)
+library(fermi)
 ```
 
 ## Introduction
-The `bayesfermi` package is built around two ideas:
+The `fermi` package is built around two ideas:
 1. **Fermi decompositions** of hard problems into simpler parts.
 2. **Bayesian updating** of beliefs as data arrive.
 
@@ -33,7 +33,7 @@ This vignette focuses on the second part: conjugate updates using:
 
 Each section below explains:
 - When to use the updating functions and why.
-- How to express your prior with bayesfermi and update it with data.
+- How to express your prior with fermi and update it with data.
 
 Each example picks a realistic question, encodes a prior based on rough beliefs, updates with data, and inspects the posterior with `posterior_summary()` and `plot_posterior()`.
 
@@ -286,7 +286,7 @@ Interpretation:
 - With more data, the posterior becomes increasingly dominated by the data.
 
 ## 4. Putting it into a Fermi-style context
-The conjugate update functions in `bayesfermi` are designed to play nicely with how you'd approach Fermi estimation based on prior knowledge and observed data. Conjugate helpers give you fast, transparent updates: write down a defensible prior, add evidence, and immediately see the revised belief. Swap in your own priors and data to fit your domain.
+The conjugate update functions in `fermi` are designed to play nicely with how you'd approach Fermi estimation based on prior knowledge and observed data. Conjugate helpers give you fast, transparent updates: write down a defensible prior, add evidence, and immediately see the revised belief. Swap in your own priors and data to fit your domain.
 
 A common workflow looks like this:
 - Use `beta_binom_posterior()`, `gamma_poisson_posterior()`, or `normal_normal_posterior()` to update beliefs about individual components (probabilities, rates, or means).
