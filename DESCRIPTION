@@ -2,7 +2,10 @@ Package: fermi
 Title: Bayesian Fermi Estimation in R
 Version: 0.0.0.9000
 Authors@R: 
-    person("Matthew", "Thomas", , "matthewgthomas@gmail.com", role = c("aut", "cre"))
+    person(given = c("Matthew", "Gwynfryn"), 
+           family = "Thomas", 
+           email = "matthewgthomas@gmail.com", 
+           role = c("cre", "aut", "cph"))
 Description: This package provides functions for performing Bayesian Fermi estimation in R, allowing users to make probabilistic inferences about unknown quantities based on prior knowledge and/or observed data.
 License: MIT + file LICENSE
 Encoding: UTF-8
