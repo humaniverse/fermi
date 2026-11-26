@@ -9,9 +9,9 @@ beta_binom_posterior(prior, successes, trials)
 \arguments{
 \item{prior}{A bf_prior with dist = "beta".}
 
-\item{successes}{Number of successes.}
+\item{successes}{Non-negative integer number of successes.}
 
-\item{trials}{Number of trials.}
+\item{trials}{Positive integer number of trials.}
 }
 \value{
 A bf_posterior object with dist = "beta".

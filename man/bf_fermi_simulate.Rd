@@ -2,28 +2,42 @@
 % Please edit documentation in R/fermi_sim.R
 \name{bf_fermi_simulate}
 \alias{bf_fermi_simulate}
-\title{Fermi-style simulation from a combination of priors/posteriors}
+\title{Simulate a Fermi estimate}
 \usage{
 bf_fermi_simulate(
   components,
   fun,
   n_draws = 10000,
-  use = c("posterior", "prior")
+  use = c("posterior", "prior"),
+  nonfinite = c("error", "drop")
 )
 }
 \arguments{
-\item{components}{Named list of bf_prior and/or bf_posterior objects.}
+\item{components}{A named list of bf_prior and/or bf_posterior objects,
+sampled independently, or a numeric data frame with one joint draw per row.
+Joint draws are used in the supplied order, preserving dependence.}
 
-\item{fun}{A function whose arguments correspond to names(components).}
+\item{fun}{A vectorised function whose arguments correspond to
+\code{names(components)}. It must return one numeric value per input row.}
 
-\item{n_draws}{Number of Monte Carlo draws.}
+\item{n_draws}{Number of Monte Carlo draws. For a data frame, this defaults
+to its number of rows and must match it if supplied.}
 
-\item{use}{Character. "posterior" (default) uses posterior params if available,
-otherwise prior; "prior" forces use of priors only.}
+\item{use}{For lists, "posterior" (default) uses posterior parameters when
+available. "prior" uses the priors attached to any posterior objects.}
+
+\item{nonfinite}{"error" (default) rejects non-finite inputs or outputs.
+"drop" excludes affected rows from both inputs and output.}
 }
 \value{
-A list with draws for the derived quantity and input draws.
+A bf_fermi object with \code{draws}, their corresponding \code{inputs}, the
+supplied \code{fun}, and \code{n_dropped} (the number of excluded rows).
 }
 \description{
-Fermi-style simulation from a combination of priors/posteriors
+Simulate a Fermi estimate
+}
+\examples{
+joint <- data.frame(demand = c(100, 200, 300), capacity = c(80, 150, 250))
+bf_fermi_simulate(joint, function(demand, capacity) demand - capacity)
+
 }

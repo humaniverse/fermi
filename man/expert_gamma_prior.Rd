@@ -2,42 +2,45 @@
 % Please edit documentation in R/expert_gamma_prior.R
 \name{expert_gamma_prior}
 \alias{expert_gamma_prior}
-\title{Gamma prior from expert quantiles (hybrid)}
+\title{Gamma prior from expert quantiles}
 \usage{
 expert_gamma_prior(
   q,
   p = c(0.1, 0.9),
   shape_switch = 20,
-  mode = c("auto", "normal", "uniroot")
+  mode = c("auto", "normal", "uniroot"),
+  tol = 1e-06
 )
 }
 \arguments{
-\item{q}{Numeric, length 2: target quantiles (> 0), e.g. c(q10, q90).}
+\item{q}{Two increasing positive target quantiles, e.g. c(q10, q90).}
 
-\item{p}{Numeric, length 2: corresponding probabilities in (0, 1).}
+\item{p}{Two increasing cumulative probabilities for q, in (0, 1).}
 
-\item{shape_switch}{Threshold on the implied shape above which we trust
-the normal approximation (default 20).}
+\item{shape_switch}{Minimum implied shape for considering the Normal
+approximation in auto mode (default 20). Use \code{Inf} to always refine.}
 
 \item{mode}{One of "auto", "normal", "uniroot":
 \itemize{
-\item "auto": hybrid behaviour (recommended)
-\item "normal": always use normal approximation
-\item "uniroot": always use the uniroot solver
+\item "auto": try the approximation and refine if needed
+\item "normal": always use the Normal approximation
+\item "uniroot": always use the root finder
 }}
+
+\item{tol}{Maximum tolerated absolute probability error at either target.
+A larger error in the final fit triggers a warning.}
 }
 \value{
-A bf_prior object with dist = "gamma".
+A bf_prior with dist = "gamma". Its metadata includes the requested
+and achieved quantiles and probabilities, maximum probability error, and
+the fitting method used.
 }
 \description{
-Uses a normal approximation for "large, bell-shaped" Gammas and a
-uniroot-based solver for more skewed or small-scale cases.
+Uses a Normal approximation for concentrated Gamma distributions when it
+matches the requested probabilities, and a root finder otherwise.
 }
 \examples{
-# Reliability: time-to-failure in hours with 10\% at 400 and 90\% at 900
 expert_gamma_prior(q = c(400, 900), p = c(0.1, 0.9))
-
-# Low-rate process: 10\% at 0.2 events/day, 90\% at 1 event/day
 expert_gamma_prior(q = c(0.2, 1), p = c(0.1, 0.9))
 
 }

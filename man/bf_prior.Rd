@@ -9,7 +9,9 @@ bf_prior(dist, params, source = c("data", "expert"), metadata = list())
 \arguments{
 \item{dist}{Character. One of "beta", "gamma", "normal".}
 
-\item{params}{Named list of parameters (e.g. list(shape1 = , shape2 = )).}
+\item{params}{Named list of finite distribution parameters. Beta uses positive
+\code{shape1} and \code{shape2}, Gamma uses positive \code{shape} and \code{rate}, and
+Normal uses \code{mean} and non-negative \code{sd}.}
 
 \item{source}{Character. "data" or "expert".}
 

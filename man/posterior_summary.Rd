@@ -4,17 +4,26 @@
 \alias{posterior_summary}
 \title{Summarise a posterior or Fermi distribution}
 \usage{
-posterior_summary(object, cred_level = 0.89, hdi = TRUE)
+posterior_summary(
+  object,
+  cred_level = 0.89,
+  hdi = TRUE,
+  nonfinite = c("error", "drop")
+)
 }
 \arguments{
-\item{object}{A bf_posterior, bf_fermi, or numeric vector of draws.}
+\item{object}{A bf_prior, bf_posterior, bf_fermi, or numeric vector of draws.}
 
 \item{cred_level}{Credible interval level (default 0.89).}
 
 \item{hdi}{Logical: include HDI?}
+
+\item{nonfinite}{"error" (default) rejects non-finite draws. "drop" excludes
+them and includes them in the reported count of dropped draws.}
 }
 \value{
-A list with median, ci, and (optionally) hdi.
+A list with median, ci, and (optionally) hdi, plus counts of retained
+(\code{n_draws}) and excluded (\code{n_dropped}) draws.
 }
 \description{
 Summarise a posterior or Fermi distribution

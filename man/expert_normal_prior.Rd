@@ -7,7 +7,7 @@
 expert_normal_prior(mean, lower, upper, level = 0.9)
 }
 \arguments{
-\item{mean}{Expert mean.}
+\item{mean}{Expert mean. It must match the midpoint of the central interval.}
 
 \item{lower}{Lower bound of central interval.}
 

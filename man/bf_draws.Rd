@@ -9,7 +9,7 @@ bf_draws(object, n = 4000)
 \arguments{
 \item{object}{A bf_prior or bf_posterior.}
 
-\item{n}{Number of draws.}
+\item{n}{Non-negative integer number of draws.}
 }
 \value{
 Numeric vector of draws.

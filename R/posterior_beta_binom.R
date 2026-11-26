@@ -1,8 +1,8 @@
 #' Conjugate Beta-Binomial update
 #'
 #' @param prior A bf_prior with dist = "beta".
-#' @param successes Number of successes.
-#' @param trials Number of trials.
+#' @param successes Non-negative integer number of successes.
+#' @param trials Positive integer number of trials.
 #'
 #' @return A bf_posterior object with dist = "beta".
 #' @export
@@ -10,10 +10,13 @@ beta_binom_posterior <- function(prior, successes, trials) {
   if (!inherits(prior, "bf_prior") || prior$dist != "beta") {
     stop("prior must be a bf_prior with dist = 'beta'.")
   }
-  if (successes < 0 || trials <= 0 || successes > trials) {
-    stop("Invalid successes/trials combination.")
+  validate_count(successes, "successes")
+  validate_count(trials, "trials", minimum = 1)
+  if (successes > trials) {
+    stop("successes cannot exceed trials.")
   }
 
+  validate_distribution(prior$dist, prior$params)
   a0 <- prior$params$shape1
   b0 <- prior$params$shape2
 

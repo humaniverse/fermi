@@ -2,7 +2,7 @@
 % Please edit documentation in R/expert_beta_prior.R
 \name{expert_beta_prior}
 \alias{expert_beta_prior}
-\title{Beta prior from expert quantiles (robust version)}
+\title{Beta prior from expert quantiles}
 \usage{
 expert_beta_prior(
   q,
@@ -10,13 +10,13 @@ expert_beta_prior(
   start = NULL,
   method = "BFGS",
   maxit = 2000,
-  tol = 1e-10
+  tol = 1e-06
 )
 }
 \arguments{
-\item{q}{Numeric vector of length 2: target quantiles in (0, 1).}
+\item{q}{Two increasing target quantiles in (0, 1).}
 
-\item{p}{Numeric vector of length 2: cumulative probabilities for q.}
+\item{p}{Two increasing cumulative probabilities for q, in (0, 1).}
 
 \item{start}{Optional starting values for log(shape1), log(shape2).}
 
@@ -24,20 +24,20 @@ expert_beta_prior(
 
 \item{maxit}{Maximum iterations for optim().}
 
-\item{tol}{Tolerance on squared error between target and achieved quantiles
-below which we don't complain even if optim() reports non-convergence.}
+\item{tol}{Maximum tolerated absolute probability error at either target.
+A larger error triggers a warning regardless of the optimizer status.}
 }
 \value{
-A bf_prior object with dist = "beta".
+A bf_prior with dist = "beta". Its metadata includes the requested
+and achieved quantiles and probabilities, maximum probability error, and
+optimizer convergence code.
 }
 \description{
-Beta prior from expert quantiles (robust version)
+Fits the CDF on the log-odds scale so small target quantiles can be
+calibrated accurately.
 }
 \examples{
-# 10\% and 90\% quantiles at 2\% and 8\%: e.g., piano ownership fraction
 expert_beta_prior(q = c(0.02, 0.08), p = c(0.1, 0.9))
-
-# Asymmetric beliefs: 25\% chance below 3\%, 75\% chance below 10\%
-expert_beta_prior(q = c(0.03, 0.10), p = c(0.25, 0.75))
+expert_beta_prior(q = c(1e-6, 8e-6), p = c(0.025, 0.9))
 
 }

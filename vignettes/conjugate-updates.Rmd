@@ -133,7 +133,7 @@ Interpretation:
 - The credible interval quantifies uncertainty after seeing data **and** incorporating the prior.
 - If you observe more data, the posterior will become more concentrated.
 
-## 2. beta_gamma_posterior(): learning a rate of counts
+## 2. `gamma_poisson_posterior()`: learning a rate of counts
 ### 2.1 When and why
 Use the **Gamma–Poisson** model when:
 
@@ -212,6 +212,17 @@ tickets_month <- lambda_draws * 30
 
 posterior_summary(tickets_month, cred_level = 0.89)
 plot_posterior(tickets_month, cred_level = 0.89)
+```
+
+To plan staffing, we might need the probability of receiving more than 150
+tickets in the next 30 days. `bf_predict()` draws a rate from the posterior and
+then generates a ticket count for that exposure. This accounts for both
+uncertainty about the rate and variation in actual ticket counts.
+
+```{r gamma-predict-month}
+future_tickets <- bf_predict(tickets_post, n = 10000, exposure = 30)
+posterior_summary(future_tickets, cred_level = 0.89)
+mean(future_tickets > 150)
 ```
 
 Interpretation:

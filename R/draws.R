@@ -1,20 +1,18 @@
 #' Draw samples from a prior or posterior distribution
 #'
 #' @param object A bf_prior or bf_posterior.
-#' @param n Number of draws.
+#' @param n Non-negative integer number of draws.
 #'
 #' @return Numeric vector of draws.
 #' @export
 bf_draws <- function(object, n = 4000) {
-  if (inherits(object, "bf_prior")) {
-    dist <- object$dist
-    p <- object$params
-  } else if (inherits(object, "bf_posterior")) {
-    dist <- object$dist
-    p <- object$params
-  } else {
+  if (!inherits(object, c("bf_prior", "bf_posterior"))) {
     stop("object must be a bf_prior or bf_posterior.")
   }
+  validate_count(n, "n")
+  dist <- object$dist
+  p <- object$params
+  validate_distribution(dist, p)
 
   switch(
     dist,

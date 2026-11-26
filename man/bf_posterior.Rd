@@ -9,7 +9,7 @@ bf_posterior(dist, params, prior = NULL, data = list())
 \arguments{
 \item{dist}{Character. One of "beta", "gamma", "normal".}
 
-\item{params}{Named list of posterior parameters.}
+\item{params}{Named list of posterior parameters, as in \code{\link[=bf_prior]{bf_prior()}}.}
 
 \item{prior}{A bf_prior object (optional but recommended).}
 

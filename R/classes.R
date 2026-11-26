@@ -1,7 +1,9 @@
 #' Create a fermi prior object
 #'
 #' @param dist Character. One of "beta", "gamma", "normal".
-#' @param params Named list of parameters (e.g. list(shape1 = , shape2 = )).
+#' @param params Named list of finite distribution parameters. Beta uses positive
+#'   `shape1` and `shape2`, Gamma uses positive `shape` and `rate`, and
+#'   Normal uses `mean` and non-negative `sd`.
 #' @param source Character. "data" or "expert".
 #' @param metadata Optional list with any extra info (e.g. description).
 #'
@@ -15,7 +17,7 @@ bf_prior <- function(
 ) {
   source <- match.arg(source)
   dist <- match.arg(dist, c("beta", "gamma", "normal"))
-  stopifnot(is.list(params))
+  validate_distribution(dist, params)
   structure(
     list(
       dist = dist,
@@ -30,7 +32,7 @@ bf_prior <- function(
 #' Create a fermi posterior object
 #'
 #' @param dist Character. One of "beta", "gamma", "normal".
-#' @param params Named list of posterior parameters.
+#' @param params Named list of posterior parameters, as in [bf_prior()].
 #' @param prior A bf_prior object (optional but recommended).
 #' @param data A list describing the data used for the update.
 #'
@@ -38,6 +40,7 @@ bf_prior <- function(
 #' @export
 bf_posterior <- function(dist, params, prior = NULL, data = list()) {
   dist <- match.arg(dist, c("beta", "gamma", "normal"))
+  validate_distribution(dist, params)
   structure(
     list(
       dist = dist,
@@ -56,6 +59,14 @@ print.bf_prior <- function(x, ...) {
   cat("  Source      :", x$source, "\n")
   cat("  Parameters  :\n")
   print(x$params)
+  if (is.list(x$metadata) && !is.null(x$metadata$achieved_p)) {
+    cat("  Quantile calibration:\n")
+    print(data.frame(
+      quantile = x$metadata$q,
+      requested_probability = x$metadata$p,
+      achieved_probability = x$metadata$achieved_p
+    ), row.names = FALSE)
+  }
   invisible(x)
 }
 

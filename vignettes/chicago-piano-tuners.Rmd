@@ -178,28 +178,32 @@ tunes_day_prior
 With our priors in place, we can now simulate over all components. The function passed to `bf_fermi_simulate()` mirrors the decomposition above.
 
 ```{r simulate}
+tuner_components <- list(
+  population = population_prior,
+  hh_size = hh_size_prior,
+  piano_frac = piano_frac_prior,
+  tunes_per_piano = tunes_per_piano_prior,
+  work_days = work_days_prior,
+  tunes_day = tunes_day_prior
+)
+
+estimate_tuners <- function(
+  population,
+  hh_size,
+  piano_frac,
+  tunes_per_piano,
+  work_days,
+  tunes_day
+) {
+  (population / hh_size) *
+    piano_frac *
+    tunes_per_piano /
+    (work_days * tunes_day)
+}
+
 tuner_draws <- bf_fermi_simulate(
-  components = list(
-    pop = population_prior,
-    hh_size = hh_size_prior,
-    piano_frac = piano_frac_prior,
-    tunes_per_piano = tunes_per_piano_prior,
-    work_days = work_days_prior,
-    tunes_day = tunes_day_prior
-  ),
-  fun = function(
-    population,
-    hh_size,
-    piano_frac,
-    tunes_per_piano,
-    work_days,
-    tunes_day
-  ) {
-    (population / hh_size) *
-      piano_frac *
-      tunes_per_piano /
-      (work_days * tunes_day)
-  },
+  components = tuner_components,
+  fun = estimate_tuners,
   n_draws = 20000
 )
 ```
@@ -221,6 +225,38 @@ line marks the median; dotted lines are the 90% credible interval.
 ```{r plot, fig.height=4.5}
 plot_posterior(tuner_draws, cred_level = 0.9)
 ```
+
+## See which assumptions matter
+
+`bf_sensitivity()` ranks input draws by the strength of their rank
+association with the estimated number of tuners. The sign tells you the
+direction of the association. A strong association with piano ownership gives
+us a reason to look for better data on how many households own a piano.
+
+```{r sensitivity}
+bf_sensitivity(tuner_draws)
+```
+
+Suppose a survey made us more confident about piano ownership. We can rerun
+the estimate with a narrower prior to see how much the interval changes.
+
+```{r scenarios}
+survey_components <- tuner_components
+survey_components$piano_frac <- expert_beta_prior(q = c(0.035, 0.065))
+
+survey_draws <- bf_fermi_simulate(
+  survey_components,
+  estimate_tuners,
+  n_draws = 20000
+)
+
+bf_compare_scenarios(list(baseline = tuner_draws, narrower_ownership = survey_draws))
+```
+
+This simulation samples the priors independently. If you have bootstrap or
+posterior draws that model relationships between the inputs, pass a data frame
+of those draws to `bf_fermi_simulate()`. Each row supplies one set of inputs to
+the estimate.
 
 ## Conclusion
 

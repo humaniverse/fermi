@@ -4,30 +4,23 @@
 #' @param cred_level Credible interval level (default 0.89).
 #' @param hdi Logical: annotate HDI?
 #' @param ... Passed to underlying plotting function.
+#' @param nonfinite "error" (default) rejects non-finite draws. "drop" excludes
+#'   them and reports the count in the returned summary.
+#' @return The posterior summary, invisibly.
 #'
 #' @importFrom graphics abline plot segments
 #' @importFrom rlang .data
 #' @export
-plot_posterior <- function(object, cred_level = 0.89, hdi = TRUE, ...) {
-  draws <- if (
-    inherits(object, "bf_posterior") ||
-      inherits(object, "bf_prior")
-  ) {
-    bf_draws(object)
-  } else if (inherits(object, "bf_fermi")) {
-    object$draws
-  } else if (is.numeric(object)) {
-    object
-  } else {
-    stop("Unsupported object type for plot_posterior.")
-  }
-
-  draws <- draws[is.finite(draws)]
-  if (length(draws) < 2L) {
-    stop("Not enough draws to plot.")
-  }
-
-  summary <- posterior_summary(draws, cred_level = cred_level, hdi = hdi)
+plot_posterior <- function(
+  object,
+  cred_level = 0.89,
+  hdi = TRUE,
+  ...,
+  nonfinite = c("error", "drop")
+) {
+  samples <- summary_draws(object, match.arg(nonfinite))
+  draws <- samples$draws
+  summary <- summarise_draws(samples, cred_level, hdi)
 
   if (requireNamespace("ggplot2", quietly = TRUE)) {
     df <- data.frame(x = draws)

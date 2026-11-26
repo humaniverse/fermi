@@ -2,17 +2,25 @@
 #'
 #' @param x Numeric vector of samples.
 #' @param cred_level Credible mass (e.g. 0.89).
+#' @param nonfinite "error" (default) rejects non-finite draws. "drop" excludes
+#'   them and warns with the number excluded.
 #'
 #' @return Named numeric vector c(lower = , upper = ).
 #' @export
-hdi <- function(x, cred_level = 0.89) {
-  x <- x[is.finite(x)]
+hdi <- function(x, cred_level = 0.89, nonfinite = c("error", "drop")) {
+  validate_probability(cred_level, "cred_level")
+  if (!is_numeric_vector(x)) {
+    stop("x must be a numeric vector.")
+  }
+  keep <- is.finite(x)
+  dropped <- check_finite_draws(keep, match.arg(nonfinite), "Samples")
+  x <- x[keep]
   n <- length(x)
   if (n < 2L) {
     stop("Need at least two samples for HDI.")
   }
-  if (cred_level <= 0 || cred_level >= 1) {
-    stop("cred_level must be in (0, 1).")
+  if (dropped) {
+    warning("Excluded ", dropped, " non-finite draw(s).", call. = FALSE)
   }
 
   x_sorted <- sort(x)

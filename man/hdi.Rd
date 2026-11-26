@@ -4,12 +4,15 @@
 \alias{hdi}
 \title{Highest Density Interval (approximate) from samples}
 \usage{
-hdi(x, cred_level = 0.89)
+hdi(x, cred_level = 0.89, nonfinite = c("error", "drop"))
 }
 \arguments{
 \item{x}{Numeric vector of samples.}
 
 \item{cred_level}{Credible mass (e.g. 0.89).}
+
+\item{nonfinite}{"error" (default) rejects non-finite draws. "drop" excludes
+them and warns with the number excluded.}
 }
 \value{
 Named numeric vector c(lower = , upper = ).

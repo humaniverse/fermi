@@ -4,7 +4,13 @@
 \alias{plot_posterior}
 \title{Plot posterior or Fermi distribution}
 \usage{
-plot_posterior(object, cred_level = 0.89, hdi = TRUE, ...)
+plot_posterior(
+  object,
+  cred_level = 0.89,
+  hdi = TRUE,
+  ...,
+  nonfinite = c("error", "drop")
+)
 }
 \arguments{
 \item{object}{A bf_posterior, bf_fermi, bf_prior, or numeric vector of draws.}
@@ -14,6 +20,12 @@ plot_posterior(object, cred_level = 0.89, hdi = TRUE, ...)
 \item{hdi}{Logical: annotate HDI?}
 
 \item{...}{Passed to underlying plotting function.}
+
+\item{nonfinite}{"error" (default) rejects non-finite draws. "drop" excludes
+them and reports the count in the returned summary.}
+}
+\value{
+The posterior summary, invisibly.
 }
 \description{
 Plot posterior or Fermi distribution

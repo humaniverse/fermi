@@ -1,21 +1,23 @@
-#' Beta prior from expert quantiles (robust version)
+#' Beta prior from expert quantiles
 #'
-#' @param q Numeric vector of length 2: target quantiles in (0, 1).
-#' @param p Numeric vector of length 2: cumulative probabilities for q.
+#' Fits the CDF on the log-odds scale so small target quantiles can be
+#' calibrated accurately.
+#'
+#' @param q Two increasing target quantiles in (0, 1).
+#' @param p Two increasing cumulative probabilities for q, in (0, 1).
 #' @param start Optional starting values for log(shape1), log(shape2).
 #' @param method Optimisation method passed to optim().
 #' @param maxit Maximum iterations for optim().
-#' @param tol Tolerance on squared error between target and achieved quantiles
-#'   below which we don't complain even if optim() reports non-convergence.
+#' @param tol Maximum tolerated absolute probability error at either target.
+#'   A larger error triggers a warning regardless of the optimizer status.
 #'
-#' @return A bf_prior object with dist = "beta".
+#' @return A bf_prior with dist = "beta". Its metadata includes the requested
+#'   and achieved quantiles and probabilities, maximum probability error, and
+#'   optimizer convergence code.
 #'
 #' @examples
-#' # 10% and 90% quantiles at 2% and 8%: e.g., piano ownership fraction
 #' expert_beta_prior(q = c(0.02, 0.08), p = c(0.1, 0.9))
-#'
-#' # Asymmetric beliefs: 25% chance below 3%, 75% chance below 10%
-#' expert_beta_prior(q = c(0.03, 0.10), p = c(0.25, 0.75))
+#' expert_beta_prior(q = c(1e-6, 8e-6), p = c(0.025, 0.9))
 #'
 #' @export
 expert_beta_prior <- function(
@@ -24,74 +26,81 @@ expert_beta_prior <- function(
   start = NULL,
   method = "BFGS",
   maxit = 2000,
-  tol = 1e-10
+  tol = 1e-6
 ) {
-  if (length(q) != 2L || length(p) != 2L) {
-    stop("q and p must both be length 2.")
-  }
-  if (any(q <= 0 | q >= 1)) {
-    stop("Beta quantiles must lie in (0, 1).")
-  }
-  if (any(p <= 0 | p >= 1)) {
-    stop("Probabilities p must lie in (0, 1).")
+  validate_quantile_targets(q, p, lower = 0, upper = 1, tol = tol)
+  validate_count(maxit, "maxit")
+
+  automatic_start <- is.null(start)
+  if (automatic_start) {
+    # Approximate logit(X) with a Normal and use the implied Beta moments.
+    z <- stats::qnorm(p)
+    logit_q <- stats::qlogis(q)
+    logit_sd <- diff(logit_q) / diff(z)
+    midpoint <- stats::plogis(logit_q[1] - z[1] * logit_sd)
+    concentration <- 1 / (midpoint * (1 - midpoint) * logit_sd^2) - 1
+    shape <- c(midpoint, 1 - midpoint) * concentration
+    start <- c(0, 0)
+    if (all(is.finite(shape) & shape > 0)) {
+      start <- log(shape)
+    }
+  } else if (
+    !is_numeric_vector(start) || length(start) != 2L ||
+      any(!is.finite(start) | !is.finite(exp(start)) | exp(start) == 0)
+  ) {
+    stop("start must contain two finite log shape values.")
   }
 
-  # If no start given and p is symmetric around 0.5, use a MoM-based guess
-  if (is.null(start)) {
-    if (abs(p[1] + p[2] - 1) < 1e-8) {
-      m <- mean(q)
-      z <- stats::qnorm(p[2]) # e.g. qnorm(0.9)
-      sd_approx <- (q[2] - q[1]) / (2 * z)
-      v <- sd_approx^2
-      common <- m * (1 - m) / v - 1
+  target <- stats::qlogis(p)
+  obj <- function(par) {
+    shape <- exp(par)
+    if (any(!is.finite(shape) | shape == 0)) {
+      return(1e100)
+    }
+    # Optimizer trial points can take the CDF beyond floating-point limits.
+    log_odds <- suppressWarnings(
+      stats::pbeta(q, shape[1], shape[2], log.p = TRUE) -
+        stats::pbeta(q, shape[1], shape[2], lower.tail = FALSE, log.p = TRUE)
+    )
+    loss <- sum((log_odds - target)^2)
+    if (is.finite(loss)) loss else 1e100
+  }
 
-      if (is.finite(common) && common > 0) {
-        a0 <- m * common
-        b0 <- (1 - m) * common
-        start <- log(c(a0, b0))
-      } else {
-        # fall back if MoM breaks
-        start <- c(0, 0)
-      }
-    } else {
-      # non-symmetric probs: fall back to (1,1)
-      start <- c(0, 0)
+  fit_from <- function(start) {
+    fit <- stats::optim(
+      par = start,
+      fn = obj,
+      method = method,
+      control = list(maxit = maxit, reltol = 1e-13, ndeps = rep(1e-5, 2L))
+    )
+    shape <- exp(fit$par)
+    achieved_p <- stats::pbeta(q, shape[1], shape[2])
+    list(
+      shape = shape,
+      achieved_p = achieved_p,
+      error = max(abs(achieved_p - p)),
+      convergence = fit$convergence
+    )
+  }
+  fit <- fit_from(start)
+  if (automatic_start && !isTRUE(fit$error <= tol) && any(start != 0)) {
+    fallback <- fit_from(c(0, 0))
+    if (!is.finite(fit$error) || isTRUE(fallback$error < fit$error)) {
+      fit <- fallback
     }
   }
 
-  obj <- function(par) {
-    a <- exp(par[1])
-    b <- exp(par[2])
-    qb <- stats::qbeta(p, a, b)
-    sum((qb - q)^2)
-  }
-
-  fit <- stats::optim(
-    par = start,
-    fn = obj,
-    method = method,
-    control = list(maxit = maxit)
-  )
-
-  alpha <- exp(fit$par[1])
-  beta <- exp(fit$par[2])
-
-  # Check how well we actually match the target quantiles
-  achieved <- stats::qbeta(p, alpha, beta)
-  err <- sum((achieved - q)^2)
-
-  if (fit$convergence != 0 && err > tol) {
-    warning(
-      "Optimization for expert Beta prior did not fully converge. ",
-      "Final squared error on target quantiles: ",
-      signif(err, 3)
-    )
-  }
-
+  alpha <- fit$shape[1]
+  beta <- fit$shape[2]
+  achieved_q <- stats::qbeta(p, alpha, beta)
+  metadata <- quantile_fit_metadata(q, p, achieved_q, fit$achieved_p, tol)
   bf_prior(
     dist = "beta",
     params = list(shape1 = alpha, shape2 = beta),
     source = "expert",
-    metadata = list(q = q, p = p, err = err)
+    metadata = c(metadata, list(
+      err = sum((achieved_q - q)^2),
+      convergence = fit$convergence
+    ))
   )
 }

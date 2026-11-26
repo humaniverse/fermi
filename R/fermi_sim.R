@@ -1,63 +1,97 @@
-#' Fermi-style simulation from a combination of priors/posteriors
+#' Simulate a Fermi estimate
 #'
-#' @param components Named list of bf_prior and/or bf_posterior objects.
-#' @param fun A function whose arguments correspond to names(components).
-#' @param n_draws Number of Monte Carlo draws.
-#' @param use Character. "posterior" (default) uses posterior params if available,
-#'   otherwise prior; "prior" forces use of priors only.
+#' @param components A named list of bf_prior and/or bf_posterior objects,
+#'   sampled independently, or a numeric data frame with one joint draw per row.
+#'   Joint draws are used in the supplied order, preserving dependence.
+#' @param fun A vectorised function whose arguments correspond to
+#'   `names(components)`. It must return one numeric value per input row.
+#' @param n_draws Number of Monte Carlo draws. For a data frame, this defaults
+#'   to its number of rows and must match it if supplied.
+#' @param use For lists, "posterior" (default) uses posterior parameters when
+#'   available. "prior" uses the priors attached to any posterior objects.
+#' @param nonfinite "error" (default) rejects non-finite inputs or outputs.
+#'   "drop" excludes affected rows from both inputs and output.
 #'
-#' @return A list with draws for the derived quantity and input draws.
+#' @return A bf_fermi object with `draws`, their corresponding `inputs`, the
+#'   supplied `fun`, and `n_dropped` (the number of excluded rows).
+#'
+#' @examples
+#' joint <- data.frame(demand = c(100, 200, 300), capacity = c(80, 150, 250))
+#' bf_fermi_simulate(joint, function(demand, capacity) demand - capacity)
+#'
 #' @export
 bf_fermi_simulate <- function(
   components,
   fun,
   n_draws = 10000,
-  use = c("posterior", "prior")
+  use = c("posterior", "prior"),
+  nonfinite = c("error", "drop")
 ) {
   use <- match.arg(use)
-  if (is.null(names(components)) || any(names(components) == "")) {
-    stop("components must be a *named* list.")
+  nonfinite <- match.arg(nonfinite)
+  if (!is.list(components)) {
+    stop("components must be a named list or a numeric data frame.")
   }
+  validate_names(components, "components")
   if (!is.function(fun)) {
     stop("fun must be a function.")
   }
 
-  draws_list <- list()
-  for (nm in names(components)) {
-    comp <- components[[nm]]
-    if (inherits(comp, "bf_posterior") && use == "posterior") {
-      draws_list[[nm]] <- bf_draws(comp, n_draws)
-    } else if (inherits(comp, "bf_prior")) {
-      draws_list[[nm]] <- bf_draws(comp, n_draws)
-    } else if (inherits(comp, "bf_posterior") && use == "prior") {
-      if (is.null(comp$prior)) {
-        stop(
-          "Requested use = 'prior' but posterior has no attached prior for component '",
-          nm,
-          "'."
-        )
-      }
-      draws_list[[nm]] <- bf_draws(comp$prior, n_draws)
-    } else {
-      stop("Each component must be bf_prior or bf_posterior.")
+  if (is.data.frame(components)) {
+    inputs <- as.data.frame(components)
+    if (!all(vapply(inputs, is_numeric_vector, logical(1)))) {
+      stop("Joint draw columns must be numeric vectors.")
     }
+    if (missing(n_draws)) {
+      n_draws <- nrow(inputs)
+    }
+    validate_count(n_draws, "n_draws", minimum = 1)
+    if (n_draws != nrow(inputs)) {
+      stop("n_draws must match the number of rows in the joint draws.")
+    }
+  } else {
+    validate_count(n_draws, "n_draws", minimum = 1)
+    draws_list <- lapply(names(components), function(name) {
+      comp <- components[[name]]
+      if (!inherits(comp, c("bf_prior", "bf_posterior"))) {
+        stop("Component '", name, "' must be a bf_prior or bf_posterior.")
+      }
+      if (inherits(comp, "bf_posterior") && use == "prior") {
+        comp <- comp$prior
+        if (is.null(comp)) {
+          stop("Posterior for component '", name, "' has no attached prior.")
+        }
+      }
+      bf_draws(comp, n_draws)
+    })
+    names(draws_list) <- names(components)
+    inputs <- as.data.frame(draws_list, optional = TRUE)
   }
 
-  # Convert to data.frame so the function can use vectorised operations
-  df <- as.data.frame(draws_list, stringsAsFactors = FALSE)
+  keep <- Reduce(`&`, lapply(inputs, is.finite))
+  n_dropped <- check_finite_draws(keep, nonfinite, "Inputs")
+  if (!any(keep)) {
+    stop("No finite input draws remain.")
+  }
+  inputs <- inputs[keep, , drop = FALSE]
 
-  # Call fun in a vectorised way: fun must accept vectors
-  result_draws <- do.call(fun, df)
-
-  if (!is.numeric(result_draws) || length(result_draws) != n_draws) {
-    stop("fun must return a numeric vector of length n_draws.")
+  # A plain list passes only the component columns as named arguments.
+  result_draws <- do.call(fun, as.list(inputs))
+  if (!is_numeric_vector(result_draws) || length(result_draws) != nrow(inputs)) {
+    stop("fun must return a numeric vector with one value per input row.")
+  }
+  keep <- is.finite(result_draws)
+  n_dropped <- n_dropped + check_finite_draws(keep, nonfinite, "Results")
+  if (!any(keep)) {
+    stop("No finite result draws remain.")
   }
 
   structure(
     list(
-      draws = result_draws,
-      inputs = df,
-      fun = fun
+      draws = result_draws[keep],
+      inputs = inputs[keep, , drop = FALSE],
+      fun = fun,
+      n_dropped = n_dropped
     ),
     class = "bf_fermi"
   )
