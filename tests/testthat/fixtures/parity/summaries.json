@@ -1,0 +1,77 @@
+[
+  {
+    "id": "credible intervals, first HDI on ties, and draw exclusions",
+    "calls": [
+      {
+        "fn": "posterior_summary", "args": {"object": [1, 2, 3, 4, 5, 6, 7, 8, 9, {"number": "inf"}, {"number": "nan"}, {"number": "nan"}]},
+        "error": "3 non-finite"
+      },
+      {
+        "fn": "posterior_summary", "args": {"object": [1, 2, 3, 4, 5, 6, 7, 8, 9, {"number": "inf"}, {"number": "nan"}, {"number": "nan"}], "cred_level": 0.5, "nonfinite": "drop"},
+        "equals": {"median": 5, "cred_level": 0.5, "ci": {"lower": 3, "upper": 7}, "hdi": {"lower": 1, "upper": 5}, "n_draws": 9, "n_dropped": 3}
+      },
+      {
+        "fn": "posterior_summary", "args": {"object": [1, 2, 3, 4, 5, 6, 7, 8, 9], "hdi": false},
+        "equals": {"hdi": null, "n_dropped": 0},
+        "near": {"ci.lower": {"value": 1.44, "atol": 1e-12}, "ci.upper": {"value": 8.56, "atol": 1e-12}}
+      },
+      {"fn": "posterior_summary", "args": {"object": [1, 2, 3], "cred_level": {"number": "nan"}}, "error": "cred_level"},
+      {"fn": "hdi", "args": {"x": [1, 2, 3, {"number": "inf"}]}, "error": "non-finite"},
+      {
+        "fn": "hdi", "args": {"x": [1, 2, 3, {"number": "inf"}, {"number": "nan"}, {"number": "nan"}], "nonfinite": "drop"},
+        "warning": "Excluded 3", "equals": {".": {"lower": 1, "upper": 3}}
+      }
+    ]
+  },
+  {
+    "id": "plots summarize the finite draws they display",
+    "calls": [
+      {"fn": "plot_posterior", "args": {"object": [1, 2, 3, 4, 5, 6, 7, 8, 9, {"number": "inf"}]}, "error": "non-finite"},
+      {
+        "fn": "plot_posterior", "args": {"object": [1, 2, 3, 4, 5, 6, 7, 8, 9, {"number": "inf"}], "cred_level": 0.5, "nonfinite": "drop"},
+        "equals": {"median": 5, "ci": {"lower": 3, "upper": 7}, "hdi": {"lower": 1, "upper": 5}, "n_draws": 9, "n_dropped": 1}
+      }
+    ]
+  },
+  {
+    "id": "sensitivity ranks signed associations and preserves input order on ties",
+    "calls": [
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"frame": {"reverse": [5, 4, 3, 2, 1], "constant": [3, 3, 3, 3, 3], "weaker": [2, 4, 3, 1, 5], "flow": [1, 2, 3, 4, 5]}}, "fun": {"callback": "flow"}},
+        "save": "sim"
+      },
+      {
+        "fn": "bf_sensitivity", "args": {"object": {"ref": "sim"}},
+        "equals": {"component": ["reverse", "flow", "weaker", "constant"]},
+        "near": {"spearman": {"value": [-1, 1, 0.3, {"number": "nan"}], "atol": 1e-12}}
+      },
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": [1, 2, 3]}}, "fun": {"callback": "zeros"}},
+        "save": "constant"
+      },
+      {
+        "fn": "bf_sensitivity", "args": {"object": {"ref": "constant"}},
+        "equals": {"component": ["x"], "spearman": [{"number": "nan"}]}
+      }
+    ]
+  },
+  {
+    "id": "named scenarios retain labels, intervals, and counts",
+    "calls": [
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": [1, 2, 3, 4, 5]}}, "fun": {"callback": "identity"}},
+        "save": "base"
+      },
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": [2, 3, 4, 5, 6, {"number": "inf"}]}}, "fun": {"callback": "identity"}, "nonfinite": "drop"},
+        "save": "higher"
+      },
+      {
+        "fn": "bf_compare_scenarios", "args": {"scenarios": {"base": {"ref": "base"}, "higher": {"ref": "higher"}}, "cred_level": 0.5},
+        "equals": {"scenario": ["base", "higher"], "median": [3, 4], "lower": [2, 3], "upper": [4, 5], "n_draws": [5, 5], "n_dropped": [0, 1]}
+      },
+      {"fn": "bf_compare_scenarios", "args": {"scenarios": {"": {"ref": "base"}}}, "error": "names"},
+      {"fn": "bf_compare_scenarios", "args": {"scenarios": {"base": [1, 2, 3, 4, 5]}}, "error": "bf_fermi"}
+    ]
+  }
+]

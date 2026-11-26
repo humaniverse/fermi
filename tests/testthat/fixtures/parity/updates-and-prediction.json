@@ -1,0 +1,94 @@
+[
+  {
+    "id": "conjugate updates match their analytic parameters",
+    "calls": [
+      {"fn": "bf_prior", "args": {"dist": "beta", "params": {"shape1": 2, "shape2": 3}}, "save": "beta"},
+      {"fn": "bf_prior", "args": {"dist": "gamma", "params": {"shape": 2, "rate": 3}}, "save": "gamma"},
+      {"fn": "bf_prior", "args": {"dist": "normal", "params": {"mean": 2, "sd": 3}}, "save": "normal"},
+      {
+        "fn": "beta_binom_posterior", "args": {"prior": {"ref": "beta"}, "successes": 2, "trials": 5},
+        "equals": {"params": {"shape1": 4, "shape2": 6}, "prior.params": {"shape1": 2, "shape2": 3}, "data": {"successes": 2, "trials": 5}}
+      },
+      {
+        "fn": "gamma_poisson_posterior", "args": {"prior": {"ref": "gamma"}, "y": [1, 2], "exposure": [0.5, 2]},
+        "equals": {"params": {"shape": 5, "rate": 5.5}, "data.exposure": [0.5, 2]}
+      },
+      {
+        "fn": "normal_normal_posterior", "args": {"prior": {"ref": "normal"}, "y": [3, 5], "obs_sd": 2},
+        "equals": {"data": {"y": [3, 5], "obs_sd": 2}},
+        "near": {"params.mean": {"value": 3.636363636363636, "atol": 1e-12}, "params.sd": {"value": 1.2792042981336627, "atol": 1e-12}}
+      }
+    ]
+  },
+  {
+    "id": "conjugate updates reject invalid likelihood inputs",
+    "calls": [
+      {"fn": "bf_prior", "args": {"dist": "beta", "params": {"shape1": 1, "shape2": 1}}, "save": "beta"},
+      {"fn": "bf_prior", "args": {"dist": "gamma", "params": {"shape": 1, "rate": 1}}, "save": "gamma"},
+      {"fn": "bf_prior", "args": {"dist": "normal", "params": {"mean": 0, "sd": 1}}, "save": "normal"},
+      {"fn": "beta_binom_posterior", "args": {"prior": {"ref": "beta"}, "successes": 1.5, "trials": 10}, "error": "successes must be an integer"},
+      {"fn": "beta_binom_posterior", "args": {"prior": {"ref": "beta"}, "successes": 1, "trials": {"number": "inf"}}, "error": "trials must be an integer"},
+      {"fn": "beta_binom_posterior", "args": {"prior": {"ref": "beta"}, "successes": 6, "trials": 5}, "error": "cannot exceed"},
+      {"fn": "gamma_poisson_posterior", "args": {"prior": {"ref": "gamma"}, "y": {"number": "nan"}}, "error": "Counts"},
+      {"fn": "gamma_poisson_posterior", "args": {"prior": {"ref": "gamma"}, "y": 2, "exposure": {"number": "inf"}}, "error": "finite"},
+      {"fn": "gamma_poisson_posterior", "args": {"prior": {"ref": "gamma"}, "y": [1, 2], "exposure": 0.5}, "error": "same length"},
+      {"fn": "normal_normal_posterior", "args": {"prior": {"ref": "normal"}, "y": 1, "obs_sd": {"number": "inf"}}, "error": "finite"}
+    ]
+  },
+  {
+    "id": "Normal updates handle point priors and extreme scales",
+    "calls": [
+      {"fn": "bf_prior", "args": {"dist": "normal", "params": {"mean": 2, "sd": 0}}, "save": "point"},
+      {
+        "fn": "normal_normal_posterior", "args": {"prior": {"ref": "point"}, "y": 4, "obs_sd": 1},
+        "equals": {"params": {"mean": 2, "sd": 0}}
+      },
+      {"fn": "bf_prior", "args": {"dist": "normal", "params": {"mean": 2, "sd": 1e200}}, "save": "diffuse"},
+      {
+        "fn": "normal_normal_posterior", "args": {"prior": {"ref": "diffuse"}, "y": 4, "obs_sd": 1e200},
+        "equals": {"params.mean": 3}, "near": {"params.sd": {"value": 7.071067811865475e199, "rtol": 1e-12}}
+      }
+    ]
+  },
+  {
+    "id": "predictive draws have the analytic marginal moments",
+    "calls": [
+      {"fn": "bf_prior", "args": {"dist": "beta", "params": {"shape1": 2, "shape2": 3}}, "save": "beta_prior"},
+      {"fn": "beta_binom_posterior", "args": {"prior": {"ref": "beta_prior"}, "successes": 1, "trials": 3}, "save": "beta"},
+      {
+        "fn": "bf_predict", "args": {"object": {"ref": "beta"}, "n": 25000, "trials": 4},
+        "sample": {"size": 25000, "min_exclusive": -1, "max_exclusive": 5, "integer": true, "mean": [1.5, 0.05], "variance": [1.25, 0.08]}
+      },
+      {"fn": "bf_prior", "args": {"dist": "gamma", "params": {"shape": 2, "rate": 3}}, "save": "gamma_prior"},
+      {"fn": "gamma_poisson_posterior", "args": {"prior": {"ref": "gamma_prior"}, "y": [1, 2]}, "save": "gamma"},
+      {
+        "fn": "bf_predict", "args": {"object": {"ref": "gamma"}, "n": 25000, "exposure": 5},
+        "sample": {"size": 25000, "min_exclusive": -1, "integer": true, "mean": [5, 0.15], "variance": [10, 0.6]}
+      },
+      {"fn": "bf_prior", "args": {"dist": "normal", "params": {"mean": 0, "sd": 1}}, "save": "normal_prior"},
+      {"fn": "normal_normal_posterior", "args": {"prior": {"ref": "normal_prior"}, "y": [1, 3], "obs_sd": 3}, "save": "normal"},
+      {
+        "fn": "bf_predict", "args": {"object": {"ref": "normal"}, "n": 25000},
+        "sample": {"size": 25000, "mean": [0.36363636363636365, 0.16], "variance": [9.818181818181818, 0.6]}
+      },
+      {
+        "fn": "bf_predict", "args": {"object": {"ref": "normal"}, "n": 25000, "obs_sd": 2},
+        "sample": {"size": 25000, "mean": [0.36363636363636365, 0.16], "variance": [4.818181818181818, 0.6]}
+      }
+    ]
+  },
+  {
+    "id": "prediction validates future observation parameters",
+    "calls": [
+      {"fn": "bf_posterior", "args": {"dist": "beta", "params": {"shape1": 2, "shape2": 3}}, "save": "beta"},
+      {"fn": "bf_posterior", "args": {"dist": "gamma", "params": {"shape": 2, "rate": 3}}, "save": "gamma"},
+      {"fn": "bf_posterior", "args": {"dist": "normal", "params": {"mean": 0, "sd": 1}}, "save": "normal"},
+      {"fn": "bf_predict", "args": {"object": {"ref": "gamma"}, "exposure": {"number": "inf"}}, "error": "finite"},
+      {"fn": "bf_predict", "args": {"object": {"ref": "gamma"}, "trials": 5}, "error": "Only exposure"},
+      {"fn": "bf_predict", "args": {"object": {"ref": "beta"}, "trials": 2.5}, "error": "integer"},
+      {"fn": "bf_predict", "args": {"object": {"ref": "normal"}}, "error": "obs_sd"},
+      {"fn": "bf_predict", "args": {"object": {"ref": "normal"}, "n": 1.5, "obs_sd": 1}, "error": "n must be an integer"},
+      {"fn": "bf_predict", "args": {"object": {"ref": "beta"}, "n": 3, "trials": 0}, "equals": {".": [0, 0, 0]}}
+    ]
+  }
+]

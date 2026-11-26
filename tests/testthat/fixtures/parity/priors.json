@@ -1,0 +1,102 @@
+[
+  {
+    "id": "rare asymmetric Beta calibration",
+    "calls": [
+      {
+        "fn": "expert_beta_prior", "args": {"q": [1e-6, 8e-6], "p": [0.025, 0.9]},
+        "equals": {"source": "expert", "metadata.q": [1e-6, 8e-6], "metadata.p": [0.025, 0.9]},
+        "near": {"metadata.achieved_p": {"value": [0.025, 0.9], "atol": 1e-6}}
+      },
+      {
+        "fn": "expert_beta_prior", "args": {"q": [0.02, 0.08], "start": [0, 0], "maxit": 0},
+        "warning": "Maximum absolute probability error",
+        "equals": {"metadata.convergence": 0},
+        "near": {
+          "metadata.achieved_p": {"value": [0.02, 0.08], "atol": 1e-12},
+          "metadata.max_p_error": {"value": 0.82, "atol": 1e-12}
+        }
+      }
+    ]
+  },
+  {
+    "id": "large and skewed Gamma calibration",
+    "calls": [
+      {
+        "fn": "expert_gamma_prior", "args": {"q": [2500000, 3500000], "mode": "normal"},
+        "warning": "Maximum absolute probability error", "equals": {"metadata.method": "normal"}
+      },
+      {
+        "fn": "expert_gamma_prior", "args": {"q": [2500000, 3500000]},
+        "equals": {"metadata.method": "uniroot"},
+        "near": {
+          "metadata.achieved_q": {"value": [2500000, 3500000], "rtol": 1e-6},
+          "metadata.achieved_p": {"value": [0.1, 0.9], "atol": 1e-6}
+        }
+      },
+      {
+        "fn": "expert_gamma_prior", "args": {"q": [0.2, 1]},
+        "near": {"metadata.achieved_p": {"value": [0.1, 0.9], "atol": 1e-6}}
+      }
+    ]
+  },
+  {
+    "id": "quantile inputs and symmetric Normal intervals",
+    "calls": [
+      {"fn": "expert_beta_prior", "args": {"q": [0.2, 0.1]}, "error": "increasing"},
+      {"fn": "expert_beta_prior", "args": {"q": [0.2, 0.4], "p": [0.9, 0.1]}, "error": "probabilities"},
+      {"fn": "expert_gamma_prior", "args": {"q": [1, {"number": "inf"}]}, "error": "finite quantiles"},
+      {"fn": "expert_gamma_prior", "args": {"q": [1, 2], "p": [{"number": "nan"}, 0.9]}, "error": "probabilities"},
+      {"fn": "expert_normal_prior", "args": {"mean": 2.4, "lower": 2, "upper": 3.2, "level": 0.8}, "error": "midpoint"},
+      {"fn": "expert_normal_prior", "args": {"mean": 2.6, "lower": 2, "upper": 3.2, "level": {"number": "inf"}}, "error": "level"},
+      {
+        "fn": "expert_normal_prior", "args": {"mean": 2.6, "lower": 2, "upper": 3.2, "level": 0.8},
+        "equals": {"params.mean": 2.6, "metadata.level": 0.8},
+        "near": {"params.sd": {"value": 0.4681824876434275, "atol": 1e-12}}
+      }
+    ]
+  },
+  {
+    "id": "sample moments and maximum likelihood fit the expected distributions",
+    "calls": [
+      {
+        "fn": "fit_beta_prior", "args": {"y": [0.08, 0.12, 0.22, 0.3]}, "save": "beta",
+        "equals": {"source": "data", "metadata": {"method": "mm", "n": 4}},
+        "near": {"params.shape1": {"value": 2.512702962660387, "rtol": 1e-6}, "params.shape2": {"value": 11.44675794100843, "rtol": 1e-6}}
+      },
+      {"fn": "bf_draws", "args": {"object": {"ref": "beta"}, "n": 30}, "sample": {"size": 30, "min_exclusive": 0, "max_exclusive": 1}},
+      {
+        "fn": "fit_gamma_prior", "args": {"y": [2, 4, 5, 6]}, "save": "gamma",
+        "equals": {"source": "data", "metadata": {"method": "mm", "n": 4}},
+        "near": {"params.shape": {"value": 6.192857142857143, "rtol": 1e-10}, "params.rate": {"value": 1.457142857142857, "rtol": 1e-10}}
+      },
+      {"fn": "bf_draws", "args": {"object": {"ref": "gamma"}, "n": 30}, "sample": {"size": 30, "min_exclusive": 0}},
+      {
+        "fn": "fit_beta_prior", "args": {"y": [0.08, 0.12, 0.22, 0.3], "method": "mle"}, "save": "beta",
+        "equals": {"source": "data", "metadata": {"method": "mle", "n": 4}},
+        "near": {"params.shape1": {"value": 3.454719, "rtol": 5e-4}, "params.shape2": {"value": 15.75401, "rtol": 5e-4}}
+      },
+      {"fn": "bf_draws", "args": {"object": {"ref": "beta"}, "n": 30}, "sample": {"size": 30, "min_exclusive": 0, "max_exclusive": 1}},
+      {
+        "fn": "fit_gamma_prior", "args": {"y": [2, 4, 5, 6], "method": "mle"}, "save": "gamma",
+        "equals": {"metadata": {"method": "mle", "n": 4}},
+        "near": {"params.shape": {"value": 6.675969, "rtol": 5e-4}, "params.rate": {"value": 1.570794, "rtol": 5e-4}}
+      },
+      {"fn": "bf_draws", "args": {"object": {"ref": "gamma"}, "n": 30}, "sample": {"size": 30, "min_exclusive": 0}},
+      {"fn": "fit_normal_prior", "args": {"y": [-1, 0, 1]}, "save": "normal", "equals": {"params": {"mean": 0, "sd": 1}}},
+      {"fn": "bf_draws", "args": {"object": {"ref": "normal"}, "n": 30}, "sample": {"size": 30}}
+    ]
+  },
+  {
+    "id": "constructors and draw counts are validated",
+    "calls": [
+      {"fn": "bf_prior", "args": {"dist": "beta", "params": {"shape1": 1}}, "error": "shape2"},
+      {"fn": "bf_prior", "args": {"dist": "normal", "params": {"mean": {"number": "nan"}, "sd": 1}}, "error": "mean"},
+      {"fn": "bf_posterior", "args": {"dist": "gamma", "params": {"shape": 1, "rate": {"number": "inf"}}}, "error": "rate"},
+      {"fn": "bf_posterior", "args": {"dist": "beta", "params": {"shape1": 0, "shape2": 1}}, "error": "positive"},
+      {"fn": "bf_prior", "args": {"dist": "normal", "params": {"mean": 1, "sd": 0}}, "save": "point"},
+      {"fn": "bf_draws", "args": {"object": {"ref": "point"}, "n": 3}, "equals": {".": [1, 1, 1]}},
+      {"fn": "bf_draws", "args": {"object": {"ref": "point"}, "n": 0}, "equals": {".": []}},
+      {"fn": "bf_draws", "args": {"object": {"ref": "point"}, "n": 1.5}, "error": "integer"}
+    ]
+  }
+]

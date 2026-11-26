@@ -19,18 +19,26 @@ set.seed(42)
 <!-- badges: start -->
 <!-- badges: end -->
 
-This R package helps you make probabilistic estimates using the [Fermi method](https://en.wikipedia.org/wiki/Fermi_problem). It allows you to break down complex problems into smaller, manageable variables and calculate the probability distribution of the outcome using Monte Carlo simulations.
+fermi helps you make probabilistic estimates in R and Python using the [Fermi method](https://en.wikipedia.org/wiki/Fermi_problem). Break a complex problem into smaller variables and use Monte Carlo simulation to estimate the distribution of the outcome.
 
 Whether you're estimating market size, the potential impacts of a policy change, or the number of piano tuners in Chicago, this tool provides a rigorous yet accessible way to handle uncertainty.
 
 ## Installation
 
-You can install the development version of fermi from [GitHub](https://github.com/) with:
+Install the R package from GitHub.
 
 ``` r
 # install.packages("pak")
 pak::pak("humaniverse/fermi")
 ```
+
+Install the Python package with Python 3.11 or newer.
+
+```sh
+python -m pip install "fermi-estimation @ git+https://github.com/humaniverse/fermi.git"
+```
+
+See the [Python guide](https://humaniverse.github.io/fermi/articles/python.html) for the same worked example in Python.
 
 ## Example
 
@@ -97,3 +105,9 @@ Use `bf_compare_scenarios()` to compare estimates under different assumptions.
 If you already have correlated draws from a model or bootstrap, pass them to
 `bf_fermi_simulate()` as a data frame with one joint draw per row. To forecast a
 future count or measurement from a conjugate posterior, use `bf_predict()`.
+
+## Development
+
+From the repository root, run `Rscript -e "testthat::test_local()"` to test R.
+For Python, run `python -m pip install -e ".[test]"` and `python -m pytest`.
+Both suites use the same cases in `tests/testthat/fixtures/parity/`.

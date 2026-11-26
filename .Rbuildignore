@@ -8,3 +8,10 @@
 ^docs$
 ^pkgdown$
 ^\.github$
+^python$
+^pyproject\.toml$
+^vignettes/articles$
+^\.venv$
+^\.pytest_cache$
+^build$
+^dist$

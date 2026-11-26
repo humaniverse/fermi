@@ -1,0 +1,77 @@
+[
+  {
+    "id": "independent simulations can use a posterior or its attached prior",
+    "calls": [
+      {"fn": "bf_prior", "args": {"dist": "normal", "params": {"mean": 2, "sd": 0}}, "save": "prior"},
+      {"fn": "bf_posterior", "args": {"dist": "normal", "params": {"mean": 4, "sd": 0}, "prior": {"ref": "prior"}}, "save": "post"},
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"x": {"ref": "post"}, "y": {"ref": "prior"}}, "fun": {"callback": "add"}, "n_draws": 4},
+        "equals": {"draws": [6, 6, 6, 6], "inputs.x": [4, 4, 4, 4], "n_dropped": 0}
+      },
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"x": {"ref": "post"}, "y": {"ref": "prior"}}, "fun": {"callback": "add"}, "n_draws": 4, "use": "prior"},
+        "equals": {"draws": [4, 4, 4, 4]}
+      },
+      {"fn": "bf_posterior", "args": {"dist": "normal", "params": {"mean": 4, "sd": 0}}, "save": "unattached"},
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"x": {"ref": "unattached"}}, "fun": {"callback": "identity"}, "use": "prior"},
+        "error": "no attached prior"
+      }
+    ]
+  },
+  {
+    "id": "joint draw order and relationships",
+    "calls": [
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": [4, 1, 3, 2], "y": [1, 4, 2, 3]}}, "fun": {"callback": "add"}},
+        "equals": {"draws": [5, 5, 5, 5], "inputs.x": [4, 1, 3, 2], "inputs.y": [1, 4, 2, 3], "n_dropped": 0}
+      },
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": [4, 1, 3, 2], "y": [1, 4, 2, 3]}}, "fun": {"callback": "add"}, "n_draws": 3},
+        "error": "must match the number of rows"
+      },
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": ["a", "b"]}}, "fun": {"callback": "identity"}},
+        "error": "numeric vectors"
+      }
+    ]
+  },
+  {
+    "id": "simulation validates names, counts, and model output shape",
+    "calls": [
+      {"fn": "bf_prior", "args": {"dist": "normal", "params": {"mean": 1, "sd": 0}}, "save": "point"},
+      {"fn": "bf_fermi_simulate", "args": {"components": {"": {"ref": "point"}}, "fun": {"callback": "identity"}}, "error": "non-empty"},
+      {"fn": "bf_fermi_simulate", "args": {"components": {"x": {"ref": "point"}}, "fun": {"callback": "identity"}, "n_draws": 1.5}, "error": "integer"},
+      {"fn": "bf_fermi_simulate", "args": {"components": {"x": {"ref": "point"}}, "fun": {"callback": "identity"}, "n_draws": 0}, "error": "integer"},
+      {"fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": []}}, "fun": {"callback": "identity"}}, "error": "n_draws"},
+      {"fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": [1, 2, 3]}}, "fun": {"callback": "matrix"}}, "error": "numeric vector"},
+      {"fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": [1, 2, 3]}}, "fun": {"callback": "mean"}}, "error": "one value per input row"}
+    ]
+  },
+  {
+    "id": "non-finite inputs and outputs are counted and excluded in alignment",
+    "calls": [
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": [1, {"number": "inf"}, 3, 4, {"number": "nan"}, 6], "y": [10, 20, 0, 40, 50, 60]}}, "fun": {"callback": "ratio"}},
+        "error": "Inputs contain 2 non-finite"
+      },
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": [1, 3, 4, 6], "y": [10, 0, 40, 60]}}, "fun": {"callback": "ratio"}},
+        "error": "Results contain 1 non-finite"
+      },
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": [1, {"number": "inf"}, 3, 4, {"number": "nan"}, 6], "y": [10, 20, 0, 40, 50, 60]}}, "fun": {"callback": "ratio"}, "nonfinite": "drop"},
+        "save": "sim", "equals": {"draws": [0.1, 0.1, 0.1], "inputs.x": [1, 4, 6], "inputs.y": [10, 40, 60], "n_dropped": 3}
+      },
+      {"fn": "posterior_summary", "args": {"object": {"ref": "sim"}}, "equals": {"n_draws": 3, "n_dropped": 3}},
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": [{"number": "inf"}]}}, "fun": {"callback": "identity"}, "nonfinite": "drop"},
+        "error": "No finite input draws"
+      },
+      {
+        "fn": "bf_fermi_simulate", "args": {"components": {"frame": {"x": [0]}}, "fun": {"callback": "reciprocal"}, "nonfinite": "drop"},
+        "error": "No finite result draws"
+      }
+    ]
+  }
+]

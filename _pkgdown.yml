@@ -2,3 +2,11 @@ url: https://humaniverse.github.io/fermi/
 template:
   bootstrap: 5
 
+navbar:
+  structure:
+    left: [intro, reference, articles, python, tutorials, news]
+  components:
+    python:
+      text: Python
+      href: articles/python.html
+

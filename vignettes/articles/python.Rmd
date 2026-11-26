@@ -1,0 +1,77 @@
+---
+title: "Bayesian Fermi estimation in Python"
+description: "Install the Python package and estimate annual dwelling fires with a Monte Carlo simulation."
+---
+
+## Installation
+
+fermi-estimation requires Python 3.11 or later. Install it from GitHub or run
+`python -m pip install .` from the repository root.
+
+```sh
+python -m pip install "fermi-estimation @ git+https://github.com/humaniverse/fermi.git"
+```
+
+## Estimate annual dwelling fires
+
+Divide England's population by the average household size to estimate the
+number of dwellings. Multiply that number by the annual fire risk per
+dwelling. Each input is uncertain, so the model draws samples from three
+expert priors and applies the calculation to every row.
+
+```python
+import numpy as np
+from matplotlib import pyplot as plt
+
+import fermi_estimation as fermi
+
+rng = np.random.default_rng(42)
+priors = {
+    "pop": fermi.expert_gamma_prior(q=(54e6, 56e6), p=(0.1, 0.9)),
+    "hh_size": fermi.expert_normal_prior(mean=2.6, lower=2.0, upper=3.2, level=0.8),
+    "p_fire": fermi.expert_beta_prior(q=(0.0001, 0.0006), p=(0.1, 0.9)),
+}
+simulation = fermi.bf_fermi_simulate(
+    priors,
+    lambda pop, hh_size, p_fire: pop / hh_size * p_fire,
+    n_draws=20_000,
+    rng=rng,
+)
+
+summary = fermi.posterior_summary(simulation)
+print(summary)
+print(fermi.bf_sensitivity(simulation))
+
+fig, ax = plt.subplots()
+fermi.plot_posterior(simulation, ax=ax)
+plt.show()
+```
+
+Use `summary.ci` for the equal-tailed interval and `summary.hdi` for the
+shortest sample interval. Both have `"lower"` and `"upper"` entries.
+`bf_sensitivity()` reports the signed Spearman correlation between each
+input and the result, ordered by absolute correlation.
+
+To use correlated inputs, pass a pandas DataFrame to `bf_fermi_simulate()`
+with one joint draw per row. The function passes each named column to your
+model as a NumPy array and stores the aligned input rows in
+`simulation.inputs`. Use `nonfinite="drop"` to exclude and count rows with
+non-finite inputs or results.
+
+## Python API
+
+| Task | Functions |
+| --- | --- |
+| Specify priors | `bf_prior()`, `expert_beta_prior()`, `expert_gamma_prior()`, `expert_normal_prior()` |
+| Fit priors to data | `fit_beta_prior()`, `fit_gamma_prior()`, `fit_normal_prior()` |
+| Construct or update posteriors | `bf_posterior()`, `beta_binom_posterior()`, `gamma_poisson_posterior()`, `normal_normal_posterior()` |
+| Sample parameters or predict observations | `bf_draws()`, `bf_predict()` |
+| Simulate and compare estimates | `bf_fermi_simulate()`, `bf_sensitivity()`, `bf_compare_scenarios()` |
+| Summarise and display draws | `posterior_summary()`, `hdi()`, `plot_posterior()` |
+
+Priors and posteriors expose distribution parameters through `.params`.
+Gamma parameters use shape and rate. Simulation and prediction draws are
+NumPy arrays, and sensitivity and scenario tables are pandas DataFrames.
+Pass a seeded NumPy generator with `rng=` to reproduce a run in Python.
+R and Python use different random number generators, so compare estimates
+and their uncertainty when working across languages.
