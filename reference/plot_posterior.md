@@ -5,7 +5,13 @@ Plot posterior or Fermi distribution
 ## Usage
 
 ``` r
-plot_posterior(object, cred_level = 0.89, hdi = TRUE, ...)
+plot_posterior(
+  object,
+  cred_level = 0.89,
+  hdi = TRUE,
+  ...,
+  nonfinite = c("error", "drop")
+)
 ```
 
 ## Arguments
@@ -25,3 +31,12 @@ plot_posterior(object, cred_level = 0.89, hdi = TRUE, ...)
 - ...:
 
   Passed to underlying plotting function.
+
+- nonfinite:
+
+  "error" (default) rejects non-finite draws. "drop" excludes them and
+  reports the count in the returned summary.
+
+## Value
+
+The posterior summary, invisibly.

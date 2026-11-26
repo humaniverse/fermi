@@ -12,7 +12,7 @@ expert_normal_prior(mean, lower, upper, level = 0.9)
 
 - mean:
 
-  Expert mean.
+  Expert mean. It must match the midpoint of the central interval.
 
 - lower:
 

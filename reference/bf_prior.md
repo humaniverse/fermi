@@ -16,7 +16,9 @@ bf_prior(dist, params, source = c("data", "expert"), metadata = list())
 
 - params:
 
-  Named list of parameters (e.g. list(shape1 = , shape2 = )).
+  Named list of finite distribution parameters. Beta uses positive
+  `shape1` and `shape2`, Gamma uses positive `shape` and `rate`, and
+  Normal uses `mean` and non-negative `sd`.
 
 - source:
 

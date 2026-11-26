@@ -5,7 +5,7 @@ Highest Density Interval (approximate) from samples
 ## Usage
 
 ``` r
-hdi(x, cred_level = 0.89)
+hdi(x, cred_level = 0.89, nonfinite = c("error", "drop"))
 ```
 
 ## Arguments
@@ -17,6 +17,11 @@ hdi(x, cred_level = 0.89)
 - cred_level:
 
   Credible mass (e.g. 0.89).
+
+- nonfinite:
+
+  "error" (default) rejects non-finite draws. "drop" excludes them and
+  warns with the number excluded.
 
 ## Value
 

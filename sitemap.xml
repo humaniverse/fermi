@@ -8,10 +8,13 @@
 <url><loc>https://humaniverse.github.io/fermi/authors.html</loc></url>
 <url><loc>https://humaniverse.github.io/fermi/index.html</loc></url>
 <url><loc>https://humaniverse.github.io/fermi/reference/beta_binom_posterior.html</loc></url>
+<url><loc>https://humaniverse.github.io/fermi/reference/bf_compare_scenarios.html</loc></url>
 <url><loc>https://humaniverse.github.io/fermi/reference/bf_draws.html</loc></url>
 <url><loc>https://humaniverse.github.io/fermi/reference/bf_fermi_simulate.html</loc></url>
 <url><loc>https://humaniverse.github.io/fermi/reference/bf_posterior.html</loc></url>
+<url><loc>https://humaniverse.github.io/fermi/reference/bf_predict.html</loc></url>
 <url><loc>https://humaniverse.github.io/fermi/reference/bf_prior.html</loc></url>
+<url><loc>https://humaniverse.github.io/fermi/reference/bf_sensitivity.html</loc></url>
 <url><loc>https://humaniverse.github.io/fermi/reference/expert_beta_prior.html</loc></url>
 <url><loc>https://humaniverse.github.io/fermi/reference/expert_gamma_prior.html</loc></url>
 <url><loc>https://humaniverse.github.io/fermi/reference/expert_normal_prior.html</loc></url>

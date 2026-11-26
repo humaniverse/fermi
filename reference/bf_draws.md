@@ -16,7 +16,7 @@ bf_draws(object, n = 4000)
 
 - n:
 
-  Number of draws.
+  Non-negative integer number of draws.
 
 ## Value
 

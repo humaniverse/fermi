@@ -20,8 +20,8 @@ gamma_poisson_posterior(prior, y, exposure = NULL)
 
 - exposure:
 
-  Optional vector of exposures for each observation (defaults to 1 per
-  observation).
+  Optional vector of finite positive exposures for each observation
+  (defaults to 1 per observation).
 
 ## Value
 

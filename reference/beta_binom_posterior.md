@@ -16,11 +16,11 @@ beta_binom_posterior(prior, successes, trials)
 
 - successes:
 
-  Number of successes.
+  Non-negative integer number of successes.
 
 - trials:
 
-  Number of trials.
+  Positive integer number of trials.
 
 ## Value
 

@@ -1,10 +1,10 @@
-pandoc: 3.1.11
-pkgdown: 2.2.0
+pandoc: 3.8.3
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   chicago-piano-tuners: chicago-piano-tuners.html
   conjugate-updates: conjugate-updates.html
-last_built: 2025-12-01T20:34Z
+last_built: 2026-11-26T13:10Z
 urls:
   reference: https://humaniverse.github.io/fermi/reference
   article: https://humaniverse.github.io/fermi/articles

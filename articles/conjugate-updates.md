@@ -1,6 +1,7 @@
 # Conjugate updates with \`fermi\`: Beta–Binomial, Gamma–Poisson, and Normal–Normal
 
 ``` r
+
 library(fermi)
 ```
 
@@ -44,13 +45,19 @@ Use the **Beta–Binomial** model when:
 Mathematically:
 
 **Prior:**  
-$$p \sim {Beta}(\alpha,\beta)$$
+``` math
+p \sim \mathrm{Beta}(\alpha, \beta)
+```
 
 **Data:**  
-$$y \mid p \sim {Binomial}(n,p)$$
+``` math
+y \mid p \sim \mathrm{Binomial}(n, p)
+```
 
 **Posterior:**  
-$$p \mid y \sim {Beta}(\alpha + y,\;\beta + n - y)$$
+``` math
+p \mid y \sim \mathrm{Beta}(\alpha + y,\; \beta + n - y)
+```
 
 The posterior has the same functional form as the prior. That’s what
 “conjugate” means here.
@@ -59,8 +66,11 @@ The posterior has the same functional form as the prior. That’s what
 
 Imagine a website with a “join newsletter” box.
 
-We want to estimate the **signup rate** $$p$$ (the probability that a
-visitor signs up), and we want to combine:
+We want to estimate the **signup rate**
+``` math
+p
+```
+(the probability that a visitor signs up), and we want to combine:
 
 - Prior belief (based on other, similar sites).
 - Fresh data from the current site.
@@ -74,6 +84,7 @@ We can encode this as a Beta prior using
 [`expert_beta_prior()`](https://humaniverse.github.io/fermi/reference/expert_beta_prior.md):
 
 ``` r
+
 signup_prior <- expert_beta_prior(
   q = c(0.05, 0.20), # quantiles
   p = c(0.1, 0.9) # probabilities
@@ -85,17 +96,22 @@ signup_prior
 #>   Source      : expert 
 #>   Parameters  :
 #> $shape1
-#> [1] 3.394814
+#> [1] 3.39481
 #> 
 #> $shape2
-#> [1] 25.12697
+#> [1] 25.12694
+#> 
+#>   Quantile calibration:
+#>  quantile requested_probability achieved_probability
+#>      0.05                   0.1                  0.1
+#>      0.20                   0.9                  0.9
 
 stats::qbeta(
   c(0.1, 0.9),
   shape1 = signup_prior$params$shape1,
   shape2 = signup_prior$params$shape2
 )
-#> [1] 0.05000003 0.19999994
+#> [1] 0.05 0.20
 ```
 
 #### 1.2.2 Data: observed signups
@@ -106,6 +122,7 @@ Now we run a short campaign and see:
 - 23 signups
 
 ``` r
+
 visitors <- 200
 signups <- 23
 ```
@@ -113,6 +130,7 @@ signups <- 23
 #### 1.2.3 Posterior: updated Beta using beta_binom_posterior()
 
 ``` r
+
 signup_post <- beta_binom_posterior(
   prior = signup_prior,
   successes = signups,
@@ -127,7 +145,7 @@ signup_post
 #> [1] 26.39481
 #> 
 #> $shape2
-#> [1] 202.127
+#> [1] 202.1269
 #> 
 #>   Derived from prior (expert)
 ```
@@ -135,17 +153,19 @@ signup_post
 We can summarise the posterior:
 
 ``` r
+
 posterior_summary(signup_post, cred_level = 0.9)
 #> Posterior summary
 #>   Credible level: 90 %
-#>   Median        : 0.1142519 
-#>   CI            : [0.08241409, 0.152479]
+#>   Median        : 0.1142519
+#>   CI            : [0.08241408, 0.152479]
 #>   HDI           : [0.08090875, 0.1500094]
 ```
 
 And visualise it:
 
 ``` r
+
 plot_posterior(signup_post, cred_level = 0.9)
 ```
 
@@ -158,25 +178,24 @@ Interpretation:
   incorporating the prior.
 - If you observe more data, the posterior will become more concentrated.
 
-## 2. beta_gamma_posterior(): learning a rate of counts
+## 2. `gamma_poisson_posterior()`: learning a rate of counts
 
 ### 2.1 When and why
 
 Use the **Gamma–Poisson** model when:
 
-- The unknown quantity is a **rate** $\lambda$ of events per unit
+- The unknown quantity is a **rate** $`\lambda`$ of events per unit
   exposure (per day, per month, per person-year, etc.).
 - Data are **counts** of events, often with an associated exposure
   (e.g. days observed, people at risk).
 
 Mathematically:
 
-- Prior: $\lambda \sim {Gamma}(\alpha,\beta)$
-- Data:
-  $y_{i} \mid \lambda \sim {Poisson}\left( \lambda \cdot e_{i} \right)$,
-  where $e_{i}$ is the exposure for observation $i$.
+- Prior: $`\lambda \sim \mathrm{Gamma}(\alpha, \beta)`$
+- Data: $`y_i \mid \lambda \sim \mathrm{Poisson}(\lambda \cdot e_i)`$,
+  where $`e_i`$ is the exposure for observation $`i`$.
 - Posterior:
-  $\lambda \mid y \sim {Gamma}\left( \alpha + \sum y_{i},\;\beta + \sum e_{i} \right)$
+  $`\lambda \mid y \sim \mathrm{Gamma}(\alpha + \sum y_i,\; \beta + \sum e_i)`$
 
 This is useful whenever you’re counting random events over time or
 space.
@@ -184,7 +203,7 @@ space.
 ### 2.2 Example: Support tickets per day
 
 Suppose you help manage a support team and want to understand the
-**average number of tickets per day**, $\lambda$.
+**average number of tickets per day**, $`\lambda`$.
 
 You have some prior belief based on experience, and then you collect
 data from the first week on a new system.
@@ -195,6 +214,7 @@ Say you believe there’s an 80% chance that there are between 1 and 5
 tickets per day.
 
 ``` r
+
 tickets_prior <- expert_gamma_prior(
   q = c(1, 5),
   p = c(0.1, 0.9)
@@ -210,6 +230,11 @@ tickets_prior
 #> 
 #> $rate
 #> [1] 1.032756
+#> 
+#>   Quantile calibration:
+#>  quantile requested_probability achieved_probability
+#>         1                   0.1                  0.1
+#>         5                   0.9                  0.9
 
 stats::qgamma(
   c(0.1, 0.9),
@@ -225,6 +250,7 @@ During the first 7 days, you observe the following counts of support
 tickets:
 
 ``` r
+
 tickets_week <- c(3, 4, 2, 6, 5, 4, 3)
 tickets_week
 #> [1] 3 4 2 6 5 4 3
@@ -236,6 +262,7 @@ vector of exposures if days were of different length or reliability.
 #### 2.2.3 Posterior: updated Gamma using `gamma_poisson_posterior()`
 
 ``` r
+
 tickets_post <- gamma_poisson_posterior(
   prior = tickets_prior,
   y = tickets_week,
@@ -258,10 +285,11 @@ tickets_post
 Summarise the rate (tickets per day):
 
 ``` r
+
 posterior_summary(tickets_post, cred_level = 0.9)
 #> Posterior summary
 #>   Credible level: 90 %
-#>   Median        : 3.674416 
+#>   Median        : 3.674416
 #>   CI            : [2.63361, 4.926418]
 #>   HDI           : [2.521482, 4.790498]
 ```
@@ -270,6 +298,7 @@ We can also look at the implied distribution of **tickets per day**
 directly:
 
 ``` r
+
 plot_posterior(tickets_post, cred_level = 0.9)
 ```
 
@@ -279,19 +308,40 @@ If you want to see the distribution of the **expected tickets over a
 month** (say 30 days), just transform the draws:
 
 ``` r
+
 lambda_draws <- bf_draws(tickets_post, n = 4000)
 tickets_month <- lambda_draws * 30
 
 posterior_summary(tickets_month, cred_level = 0.89)
 #> Posterior summary
 #>   Credible level: 89 %
-#>   Median        : 110.7253 
+#>   Median        : 110.7253
 #>   CI            : [82.10701, 145.8198]
 #>   HDI           : [82.08899, 145.8115]
 plot_posterior(tickets_month, cred_level = 0.89)
 ```
 
 ![](conjugate-updates_files/figure-html/gamma-plot-month-1.png)
+
+To plan staffing, we might need the probability of receiving more than
+150 tickets in the next 30 days.
+[`bf_predict()`](https://humaniverse.github.io/fermi/reference/bf_predict.md)
+draws a rate from the posterior and then generates a ticket count for
+that exposure. This accounts for both uncertainty about the rate and
+variation in actual ticket counts.
+
+``` r
+
+future_tickets <- bf_predict(tickets_post, n = 10000, exposure = 30)
+posterior_summary(future_tickets, cred_level = 0.89)
+#> Posterior summary
+#>   Credible level: 89 %
+#>   Median        : 110
+#>   CI            : [78, 150]
+#>   HDI           : [73, 145]
+mean(future_tickets > 150)
+#> [1] 0.0539
+```
 
 Interpretation:
 
@@ -306,17 +356,16 @@ Interpretation:
 
 Use the Normal–Normal model when:
 
-- You care about an unknown mean $\mu$.
+- You care about an unknown mean $`\mu`$.
 - Individual observations are Normally distributed around that mean with
-  a known standard deviation $\sigma$.
+  a known standard deviation $`\sigma`$.
 
 Mathematically:
 
-- Prior: $\mu \sim {Normal}\left( \mu_{0},\tau_{0}^{2} \right)$
-- Data: $y_{i} \mid \mu \sim {Normal}\left( \mu,\sigma^{2} \right)$ with
-  a known $\sigma$.
-- Posterior:
-  $\mu \mid y \sim {Normal}\left( \mu_{n},\tau_{n}^{2} \right)$.
+- Prior: $`\mu \sim \mathrm{Normal}(\mu_0, \tau_0^2)`$
+- Data: $`y_i \mid \mu \sim \mathrm{Normal}(\mu, \sigma^2)`$ with a
+  known $`\sigma`$.
+- Posterior: $`\mu \mid y \sim \mathrm{Normal}(\mu_n, \tau_n^2)`$.
 
 This is natural when measurement noise is well-understood,
 e.g. measurement devices with known precision or settings where
@@ -339,6 +388,7 @@ staff availability, etc.).
 #### 3.2.1 Prior: Normal for the mean response time
 
 ``` r
+
 response_prior <- expert_normal_prior(
   mean = 60,
   lower = 40,
@@ -363,17 +413,19 @@ response_prior
 You collect response times for 20 requests (in minutes):
 
 ``` r
+
 # Known observation standard deviation
 obs_sd <- 15
 
 response_times <- round(stats::rnorm(20, mean = 55, sd = obs_sd))
 response_times
-#>  [1] 68 68 81 82 79 52 57 67 48 50 39 40 46 81 51 45 39 37 86 77
+#>  [1] 32 54 37 64 20 65 61 45 51 42 70 52 50 59 65 39 46 61 63 34
 ```
 
 #### 3.2.3 Posterior: updated Normal using normal_normal_posterior()
 
 ``` r
+
 response_post <- normal_normal_posterior(
   prior = response_prior,
   y = response_times,
@@ -385,7 +437,7 @@ response_post
 #>   Distribution: normal 
 #>   Parameters  :
 #> $mean
-#> [1] 59.67475
+#> [1] 51.17177
 #> 
 #> $sd
 #> [1] 3.233339
@@ -396,17 +448,19 @@ response_post
 Summarise the posterior mean:
 
 ``` r
+
 posterior_summary(response_post, cred_level = 0.9)
 #> Posterior summary
 #>   Credible level: 90 %
-#>   Median        : 59.73669 
-#>   CI            : [54.51551, 65.14882]
-#>   HDI           : [54.64528, 65.23133]
+#>   Median        : 51.21877
+#>   CI            : [45.77545, 56.63085]
+#>   HDI           : [45.90112, 56.72359]
 ```
 
 Visualise the posterior distribution for the mean response time:
 
 ``` r
+
 plot_posterior(response_post, cred_level = 0.9)
 ```
 

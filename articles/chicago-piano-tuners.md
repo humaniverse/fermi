@@ -19,6 +19,7 @@ We will:
 - Summarise and visualise the resulting distribution.
 
 ``` r
+
 library(fermi)
 ```
 
@@ -39,7 +40,24 @@ parts.
 
 The decomposition we will use is:
 
-$$\text{tuners} = \frac{\text{population}}{\text{people per household}} \times \text{fraction of households with a piano} \times \text{tunings per piano per year}\;/\;\left( \text{working days per year} \times \text{tunings per tuner per day} \right).$$
+``` math
+\text{tuners} =
+\frac{
+  \text{population}
+}{
+  \text{people per household}
+}
+\times
+\text{fraction of households with a piano}
+\times
+\text{tunings per piano per year}
+\;\Big/\;
+\left(
+  \text{working days per year}
+  \times
+  \text{tunings per tuner per day}
+\right).
+```
 
 ## Prior beliefs from expert judgement
 
@@ -53,23 +71,26 @@ function. We are using a gamma distribution here because the population
 is a positive count.
 
 ``` r
+
 population_prior <- expert_gamma_prior(
   q = c(2.5e6, 3.5e6),
   p = c(0.1, 0.9)
 )
-#> Warning in expert_gamma_prior(q = c(2500000, 3500000), p = c(0.1, 0.9)):
-#> expert_gamma_prior: quantile match may be imprecise. Squared error on q:
-#> 2.39e+08 (method = normal, shape ~= 59.1)
 population_prior
 #> fermi prior
 #>   Distribution: gamma 
 #>   Source      : expert 
 #>   Parameters  :
 #> $shape
-#> [1] 59.12548
+#> [1] 58.39563
 #> 
 #> $rate
-#> [1] 1.970849e-05
+#> [1] 1.953656e-05
+#> 
+#>   Quantile calibration:
+#>  quantile requested_probability achieved_probability
+#>   2500000                   0.1                  0.1
+#>   3500000                   0.9                  0.9
 ```
 
 Let’s check
@@ -77,12 +98,13 @@ Let’s check
 has captured our beliefs correctly:
 
 ``` r
+
 stats::qgamma(
   c(0.1, 0.9),
   shape = population_prior$params$shape,
   rate = population_prior$params$rate
 )
-#> [1] 2512119 3509602
+#> [1] 2500000 3500000
 ```
 
 ### Household size
@@ -95,6 +117,7 @@ function. We are using a normal distribution here because household size
 can be reasonably approximated as a continuous variable.
 
 ``` r
+
 hh_size_prior <- expert_normal_prior(
   mean = 2.7,
   lower = 2.2,
@@ -124,6 +147,7 @@ function. We are using a beta distribution here because the fraction is
 a probability between 0 and 1.
 
 ``` r
+
 piano_frac_prior <- expert_beta_prior(
   q = c(0.02, 0.08),
   p = c(0.1, 0.9)
@@ -135,10 +159,15 @@ piano_frac_prior
 #>   Source      : expert 
 #>   Parameters  :
 #> $shape1
-#> [1] 3.623535
+#> [1] 3.623528
 #> 
 #> $shape2
-#> [1] 72.7708
+#> [1] 72.77062
+#> 
+#>   Quantile calibration:
+#>  quantile requested_probability achieved_probability
+#>      0.02                   0.1                  0.1
+#>      0.08                   0.9                  0.9
 ```
 
 Let’s check
@@ -146,12 +175,13 @@ Let’s check
 has captured our beliefs correctly:
 
 ``` r
+
 stats::qbeta(
   c(0.1, 0.9),
   shape1 = piano_frac_prior$params$shape1,
   shape2 = piano_frac_prior$params$shape2
 )
-#> [1] 0.02000001 0.07999992
+#> [1] 0.02 0.08
 ```
 
 ### Tunings per piano per year
@@ -164,6 +194,7 @@ function. Again, we use a gamma distribution because the number of
 tunings is a positive count.
 
 ``` r
+
 tunes_per_piano_prior <- expert_gamma_prior(
   q = c(0.3, 1.0),
   p = c(0.1, 0.9)
@@ -179,6 +210,11 @@ tunes_per_piano_prior
 #> 
 #> $rate
 #> [1] 7.851207
+#> 
+#>   Quantile calibration:
+#>  quantile requested_probability achieved_probability
+#>       0.3                   0.1                  0.1
+#>       1.0                   0.9                  0.9
 ```
 
 ### Working days per year
@@ -191,6 +227,7 @@ function. We are using a normal distribution here because the number of
 working days can be reasonably approximated as a continuous variable.
 
 ``` r
+
 work_days_prior <- expert_normal_prior(
   mean = 230,
   lower = 180,
@@ -221,6 +258,7 @@ function. Again, we use a gamma distribution because the number of
 tunings is a positive count.
 
 ``` r
+
 tunes_day_prior <- expert_gamma_prior(
   q = c(2, 5),
   p = c(0.1, 0.9)
@@ -236,6 +274,11 @@ tunes_day_prior
 #> 
 #> $rate
 #> [1] 2.40024
+#> 
+#>   Quantile calibration:
+#>  quantile requested_probability achieved_probability
+#>         2                   0.1                  0.1
+#>         5                   0.9                  0.9
 ```
 
 ## Simulate the number of piano tuners (with uncertainty)
@@ -246,28 +289,33 @@ function passed to
 mirrors the decomposition above.
 
 ``` r
+
+tuner_components <- list(
+  population = population_prior,
+  hh_size = hh_size_prior,
+  piano_frac = piano_frac_prior,
+  tunes_per_piano = tunes_per_piano_prior,
+  work_days = work_days_prior,
+  tunes_day = tunes_day_prior
+)
+
+estimate_tuners <- function(
+  population,
+  hh_size,
+  piano_frac,
+  tunes_per_piano,
+  work_days,
+  tunes_day
+) {
+  (population / hh_size) *
+    piano_frac *
+    tunes_per_piano /
+    (work_days * tunes_day)
+}
+
 tuner_draws <- bf_fermi_simulate(
-  components = list(
-    pop = population_prior,
-    hh_size = hh_size_prior,
-    piano_frac = piano_frac_prior,
-    tunes_per_piano = tunes_per_piano_prior,
-    work_days = work_days_prior,
-    tunes_day = tunes_day_prior
-  ),
-  fun = function(
-    population,
-    hh_size,
-    piano_frac,
-    tunes_per_piano,
-    work_days,
-    tunes_day
-  ) {
-    (population / hh_size) *
-      piano_frac *
-      tunes_per_piano /
-      (work_days * tunes_day)
-  },
+  components = tuner_components,
+  fun = estimate_tuners,
   n_draws = 20000
 )
 ```
@@ -279,18 +327,19 @@ distribution) using
 [`posterior_summary()`](https://humaniverse.github.io/fermi/reference/posterior_summary.md).
 
 ``` r
+
 tuner_summary <- posterior_summary(tuner_draws, cred_level = 0.89)
 tuner_summary
 #> Posterior summary
 #>   Credible level: 89 %
-#>   Median        : 36.31656 
-#>   CI            : [8.606157, 129.9963]
-#>   HDI           : [1.717152, 96.42675]
+#>   Median        : 36.38457
+#>   CI            : [8.753396, 131.2411]
+#>   HDI           : [2.065656, 98.60707]
 ```
 
 Based on our beliefs, and our uncertainty about them, we estimate there
 are around 36 piano tuners in Chicago, with a 89% credible interval from
-about 9 to 130.
+about 9 to 131.
 
 ## Visualise the result
 
@@ -298,10 +347,58 @@ Finally, take a quick look at the posterior distribution. The dashed
 line marks the median; dotted lines are the 90% credible interval.
 
 ``` r
+
 plot_posterior(tuner_draws, cred_level = 0.9)
 ```
 
 ![](chicago-piano-tuners_files/figure-html/plot-1.png)
+
+## See which assumptions matter
+
+[`bf_sensitivity()`](https://humaniverse.github.io/fermi/reference/bf_sensitivity.md)
+ranks input draws by the strength of their rank association with the
+estimated number of tuners. The sign tells you the direction of the
+association. A strong association with piano ownership gives us a reason
+to look for better data on how many households own a piano.
+
+``` r
+
+bf_sensitivity(tuner_draws)
+#>         component   spearman
+#> 1      piano_frac  0.6265615
+#> 2 tunes_per_piano  0.5436243
+#> 3       tunes_day -0.4157048
+#> 4         hh_size -0.1662341
+#> 5       work_days -0.1653311
+#> 6      population  0.1485333
+```
+
+Suppose a survey made us more confident about piano ownership. We can
+rerun the estimate with a narrower prior to see how much the interval
+changes.
+
+``` r
+
+survey_components <- tuner_components
+survey_components$piano_frac <- expert_beta_prior(q = c(0.035, 0.065))
+
+survey_draws <- bf_fermi_simulate(
+  survey_components,
+  estimate_tuners,
+  n_draws = 20000
+)
+
+bf_compare_scenarios(list(baseline = tuner_draws, narrower_ownership = survey_draws))
+#>             scenario   median     lower    upper n_draws n_dropped
+#> 1           baseline 36.38457  8.753396 131.2411   20000         0
+#> 2 narrower_ownership 41.84899 13.499863 120.2926   20000         0
+```
+
+This simulation samples the priors independently. If you have bootstrap
+or posterior draws that model relationships between the inputs, pass a
+data frame of those draws to
+[`bf_fermi_simulate()`](https://humaniverse.github.io/fermi/reference/bf_fermi_simulate.md).
+Each row supplies one set of inputs to the estimate.
 
 ## Conclusion
 

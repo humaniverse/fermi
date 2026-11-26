@@ -16,7 +16,8 @@ bf_posterior(dist, params, prior = NULL, data = list())
 
 - params:
 
-  Named list of posterior parameters.
+  Named list of posterior parameters, as in
+  [`bf_prior()`](https://humaniverse.github.io/fermi/reference/bf_prior.md).
 
 - prior:
 
